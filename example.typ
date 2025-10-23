@@ -386,9 +386,28 @@
   title: [Amazon ECR],
   subtitle: [Iniciar sesión en AWS CLI],
 )[
-  Antes de poder subir nuestra imagen Docker a ECR, necesitamos iniciar sesión en AWS desde la terminal usando *AWS CLI*.
+  Antes de subir nuestra imagen Docker a ECR, necesitamos iniciar sesión en AWS desde la terminal usando *AWS CLI*.
 
-  1. Configura tus credenciales de AWS:
+  1. Dirígete a la sección de usuarios en el #link("https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-2#/users")[IAM Dashboard] y crea un usuario o revisa que tu usuario ya tenga las credenciales necesarias.
+    Asegúrate de escoger la opción *"Log in as root user"* si estás generando credenciales para la primera vez.
+
+  2. A continuación, encontrarás una guía paso a paso con capturas de pantalla. Este proceso solo se realiza una vez; podrás reutilizar las credenciales mientras trabajes en la misma región.
+
+  #linear.callout(title: [Ten cuidado])[
+    Las credenciales son privadas y no deben compartirse con nadie. Asegúrate de eliminarlas al finalizar el workshop si no planeas utilizarlas en otro proyecto.
+  ]
+
+  #figure(image("img/aws-iam.png", width: 90%))
+  #figure(image("img/iam/1.png", width: 90%))
+  #figure(image("img/iam/2.png", width: 90%))
+  #figure(image("img/iam/3.png", width: 90%))
+  #figure(image("img/iam/4.png", width: 90%))
+  #figure(image("img/iam/5.png", width: 90%))
+  #figure(image("img/iam/6.png", width: 90%))
+  #figure(image("img/iam/7.png", width: 90%))
+  #figure(image("img/iam/8.png", width: 90%))
+
+  3. Configura tus credenciales de AWS en la terminal:
 
     #block(width: 90%)[
       ```bash
@@ -396,55 +415,79 @@
       ```
     ]
 
-    Este comando te pedirá tanto tu AWS Access Key ID como tu AWS Secret Access Key. Para generarlo, dirígete al #link("https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-2#/home")[IAM dashboard.]
+    Este comando te pedirá tu *AWS Access Key ID* y *AWS Secret Access Key*, obtenidas del paso anterior. Al momento de escoger tu región, escribe: "us-east-2".
 
-  2. Verifica que la configuración fue correcta:
+  4. Verifica que la configuración fue correcta:
 
     #block(width: 90%)[
       ```bash
-      aws sts get-caller-identity
-      # Esto mostrará tu ID de usuario, cuenta y ARN
+      aws sts get-caller-identity # Esto mostrará tu ID de usuario, cuenta y ARN
       ```
     ]
 
-    #figure(
-      image("img/aws-cred.png", width: 80%),
-    )
+    #figure(image("img/aws-cred.png", width: 55%))
 ]
 
 #linear.slide(
   title: [Amazon ECR],
   subtitle: [Subir nuestra imagen Docker],
 )[
-  *Elastic Container Registry (ECR)* es un servicio de AWS para hospedar tus imágenes Docker. Es como GitHub, pero para contenedores.
-
-  1. Crear el repositorio
+  Ahora que tenemos nuestra cuenta de AWS configurada, podemos crear un repositorio en ECR:
 
   #block(width: 90%)[
-
     ```bash
-    aws ecr create-repository --repository-name django-ec2-complete
-    # Esto devuelve un URI, por ejemplo:
-    # 620457613573.dkr.ecr.us-east-1.amazonaws.com/django-ec2-complete
-    ```
-
-  ]
-
-  2. Login, tag y push
-
-  #block(width: 90%)[
-
-    ```bash
-    # Login a ECR (reemplaza <TU_URI>)
-    docker login -u AWS -p $(aws ecr get-login-password --region us-east-1) <TU_URI>.dkr.ecr.us-east-1.amazonaws.com
-
-    # Etiquetar la imagen
-    docker tag django-ec2-complete:latest <TU_URI>/django-ec2-complete:latest
-
-    # Subir la imagen
-    docker push <TU_URI>/django-ec2-complete:latest
+    aws ecr create-repository --repository-name proyecto1-ec2
     ```
   ]
+
+  Esto retornará un objeto JSON con información sobre el repositorio creado:
+
+  ```json
+  {
+      "repository": {
+          "repositoryArn": "arn:aws:ecr:us-east-2:***:repository/proyecto1-ec2",
+          "registryId": "***",
+          "repositoryName": "proyecto1-ec2",
+          "repositoryUri": "***.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2",
+          "createdAt": "2025-10-23T15:42:25.263000-05:00",
+          "imageTagMutability": "MUTABLE",
+          "imageScanningConfiguration": { "scanOnPush": false },
+          "encryptionConfiguration": { "encryptionType": "AES256" }
+      }
+  }
+  ```
+
+  Guarda el valor *repositoryUri* ya que vamos a necesitarlo en el siguiente paso.
+
+  2. Para iniciar sesión en el repositorio de ECR. En esta sección reemplaza <TU_URI> por el valor obtenido en el paso anterior:
+
+    #block[
+      ```bash
+      docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) <TU_URI>.dkr.ecr.us-east-2.amazonaws.com
+      ```
+    ]
+
+  3. Etiquetar la imagen:
+
+    #block[
+      ```bash
+      docker tag proyecto1-ec2:latest <TU_URI>/proyecto1-ec2:latest
+      ```
+    ]
+
+  4. Subir la imagen al repositorio de ECR:
+
+    #block[
+      ```bash
+      docker push <TU_URI>/proyecto1-ec2:latest
+      ```
+    ]
+
+    Este proceso puede que tome un par de minutos. Puedes ir por un café o tomar un descanso.
+
+    Para verificar este proceso, puedes dirigirte a la consola de AWS y buscar la imagen en el repositorio de ECR: #link("https://us-east-2.console.aws.amazon.com/ecr/home?region=us-east-2#")[https://us-east-2.console.aws.amazon.com/ecr/home?region=us-east-2#]
+
+    #figure(image("img/aws-ecr.png", width: 70%))
 ]
 
 
