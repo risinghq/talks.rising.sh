@@ -129,7 +129,7 @@
   background: colors.bg,
   foreground: colors.fg,
 ) = {
-  set page(fill: background)
+  set page(fill: background, margin: 0pt)
   page({
     set align(center + horizon)
     set text(size: sizes.hero, weight: 600, fill: foreground)
