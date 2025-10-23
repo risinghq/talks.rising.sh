@@ -376,7 +376,7 @@
     ],
   )
 
-  Hoy lo haremos directamente con código. Primero, asegúrate de tener instalado *#link("https://awscli.amazonaws.com/AWSCLIV2.msi")[AWS CLI]* en tu máquina:
+  Hoy lo haremos directamente con código. Primero, asegúrate de tener instalado *AWS CLI* (https://awscli.amazonaws.com/AWSCLIV2.msi) en tu PC:
   #figure(
     image("img/awscli.png", width: 63%),
   )
