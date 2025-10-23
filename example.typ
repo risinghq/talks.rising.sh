@@ -46,27 +46,27 @@
 
 // Slide with two columns
 #(linear.slide)(title: [Por qué hacerlo bien])[
-  #(linear.two-columns)(
-    split: 45%,
-    [
-      = Manual vs automatizado
+  #text(size: 28pt, weight: 600)[Manual vs automatizado]
 
+  #v(1.5em)
+
+  #(linear.two-columns)(
+    split: 50%,
+    [
       *Forma manual:*
+      #v(0.3em)
       - Click en la consola
       - Sin historial
       - No repetible
       - Difícil de revisar
     ],
     [
-      #v(1em)
-      *Con código:*
+      *Con código:* #h(0.5em) #(linear.badge)(type: "success")[Recomendado]
+      #v(0.3em)
       - Versionado en git
       - Repetible
       - Revisable
       - Documentado
-
-      #v(1em)
-      #(linear.badge)(type: "success")[Recomendado]
     ],
   )
 ]
@@ -140,8 +140,7 @@
   COPY . /app/
   RUN pip install --upgrade pip
   RUN pip install -r requirements.txt
-  CMD gunicorn django_ec2_complete.wsgi:application \
-      --bind 0.0.0.0:"${PORT}"
+  CMD gunicorn django_ec2_complete.wsgi:application --bind 0.0.0.0:"${PORT}"
   EXPOSE ${PORT}
   ```
 

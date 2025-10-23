@@ -1,24 +1,27 @@
 #import "@preview/touying:0.6.1": *
 
-// Color palette inspired by Linear/shadcn
 #let linear-colors = (
   // Base colors
   bg: rgb("#fafafa"),
   fg: rgb("#09090b"),
   muted: rgb("#f4f4f5"),
   muted-fg: rgb("#71717a"),
+
   // Accent colors
   primary: rgb("#18181b"),
   primary-fg: rgb("#fafafa"),
   accent: rgb("#5e6ad2"),
   accent-light: rgb("#eef0fd"),
+
   // Border and dividers
   border: rgb("#e4e4e7"),
   border-strong: rgb("#d4d4d8"),
+
   // Semantic colors
   success: rgb("#22c55e"),
   warning: rgb("#f59e0b"),
   danger: rgb("#ef4444"),
+
   // Code blocks
   code-bg: rgb("#f9fafb"),
   code-border: rgb("#e5e7eb"),
@@ -347,23 +350,25 @@
 // Badge component
 #let badge(body, type: "default") = {
   let colors = if type == "default" {
-    (bg: linear-colors.muted, fg: linear-colors.fg)
+    (bg: rgb("#f4f4f5"), fg: rgb("#52525b"))
   } else if type == "accent" {
-    (bg: linear-colors.accent-light, fg: linear-colors.accent)
+    (bg: rgb("#eff6ff"), fg: rgb("#3b82f6"))
   } else if type == "success" {
-    (bg: rgb("#d1fae5"), fg: linear-colors.success)
+    (bg: rgb("#f0fdf4"), fg: rgb("#16a34a"))
   } else {
-    (bg: linear-colors.muted, fg: linear-colors.fg)
+    (bg: rgb("#f4f4f5"), fg: rgb("#52525b"))
   }
 
   box(
     fill: colors.bg,
-    outset: (x: 6pt, y: 3pt),
-    radius: 4pt,
+    inset: (x: 8pt, y: 4pt),
+    radius: 6pt,
+    baseline: 20%,
     text(
-      size: 14pt,
+      size: 11pt,
       weight: 500,
       fill: colors.fg,
+      tracking: 0.01em,
       body,
     ),
   )
