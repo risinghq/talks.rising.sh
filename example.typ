@@ -1,4 +1,4 @@
-#import "@local/linear:0.1.0"
+#import "linear/lib.typ" as linear
 
 #show: linear.theme.with(aspect-ratio: "16-9")
 
@@ -11,9 +11,8 @@
 
 #linear.outline-slide(depth: 2)
 
-= El resultado final
-
 #linear.slide(
+  title: [El resultado final],
   subtitle: [Lo que vamos a construir hoy],
 )[
   Vamos a crear una aplicación Django en producción con:
@@ -31,13 +30,7 @@
   ]
 ]
 
-= Por qué hacerlo bien
-
-#linear.slide[
-  #text(size: 24pt, weight: 600)[Manual vs automatizado]
-
-  #v(1em)
-
+#linear.slide(title: [Por qué hacerlo bien])[
   #linear.two-columns(
     split: 50%,
     [
@@ -57,12 +50,10 @@
   )
 ]
 
-= Componentes necesarios
-
-#linear.slide[
+#linear.slide(title: [Componentes necesarios])[
   #linear.grid-layout(
     columns: 2,
-    gutter: 1em,
+    gutter: 1.5em,
 
     linear.card(
       title: [Docker],
@@ -94,9 +85,7 @@
   )
 ]
 
-= Crear el proyecto Django
-
-#linear.slide[
+#linear.slide(title: [Crear el proyecto Django])[
   Primero, instalamos Django y creamos el proyecto:
 
   ```bash
@@ -115,9 +104,7 @@
   ```
 ]
 
-= Dockerfile
-
-#linear.slide[
+#linear.slide(title: [Dockerfile])[
   Creamos un `Dockerfile` para empaquetar nuestra aplicación:
 
   ```dockerfile
@@ -139,13 +126,13 @@
   ]
 ]
 
-= VPC y networking
-
-#linear.slide[
+#linear.slide(title: [VPC y networking])[
   Una VPC (Virtual Private Cloud) es tu red privada en AWS.
 
+  #v(1em)
+
   #linear.two-columns(
-    split: 60%,
+    split: 55%,
     [
       ```hcl
       resource "aws_vpc" "default" {
@@ -173,9 +160,7 @@
   Infrastructure as Code
 ]
 
-= Aplicar cambios
-
-#linear.slide[
+#linear.slide(title: [Aplicar cambios])[
   Una vez definida tu infraestructura en Terraform:
 
   ```bash
@@ -194,12 +179,11 @@
   ]
 ]
 
-= Seguridad
 
-#linear.slide[
+#linear.slide(title: [Seguridad])[
   Algunas consideraciones importantes:
 
-  #linear.callout(title: [Nunca hagas esto])[
+  #linear.callout(title: [Nunca hagas esto], type: "danger")[
     - No pongas credenciales en el código
     - No uses `DEBUG = True` en producción
     - No expongas todos los puertos al internet
@@ -215,12 +199,10 @@
   ```
 ]
 
-= Próximos pasos
-
-#linear.slide[
+#linear.slide(title: [Próximos pasos])[
   #linear.grid-layout(
     columns: 3,
-    gutter: 1em,
+    gutter: 1.5em,
 
     linear.card(title: [Optimizar])[
       Reduce el tamaño de la imagen Docker con `.dockerignore`
@@ -235,24 +217,24 @@
     ],
   )
 
-  #v(1em)
+  #v(1.5em)
 
-  La mejor forma de aprender es construyendo. #linear.badge[Empieza hoy]
+  La mejor forma de aprender es construyendo. #linear.badge(type: "accent")[Empieza hoy]
 ]
 
 #linear.focus-slide[
   ¡Gracias!
 ]
 
-= ¿Preguntas?
-
-#linear.slide(footer: none)[
+#linear.slide(title: [¿Preguntas?], footer: none)[
   #align(center + horizon)[
-    #text(size: 40pt, weight: 600)[¿Preguntas?]
+    #v(2em)
+
+    #text(size: linear.sizes.display, weight: 600)[¿Preguntas?]
 
     #v(2em)
 
-    #text(size: 18pt, fill: linear.colors.muted)[
+    #text(size: linear.sizes.small, fill: linear.colors.gray-500)[
       Documentación y recursos disponibles en el repositorio
     ]
   ]
