@@ -72,7 +72,7 @@
       - No necesita permisos de administrador
     ]
 
-  2. También puedes instalar cada herramienta *manualmente* por separado desde sus páginas oficiales: #link("[https://www.python.org/downloads/")[python.org], #link("[https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")[aws.amazon.com/cli], #link("[https://cli.github.com/")[cli.github.com]
+  2. También puedes instalar cada herramienta *manualmente* por separado desde sus páginas oficiales: #link("https://www.python.org/downloads/")[python.org], #link("https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")[aws.amazon.com/cli], #link("https://cli.github.com/")[cli.github.com]
 ]
 
 #linear.section-slide[Paso 1: Proyecto Django]
