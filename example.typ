@@ -11,8 +11,9 @@
 
 #linear.outline-slide(depth: 2)
 
+= El resultado final
+
 #linear.slide(
-  title: [El resultado final],
   subtitle: [Lo que vamos a construir hoy],
 )[
   Vamos a crear una aplicación Django en producción con:
@@ -30,7 +31,9 @@
   ]
 ]
 
-#linear.slide(title: [Por qué hacerlo bien])[
+= Por qué hacerlo bien
+
+#linear.slide[
   #text(size: 24pt, weight: 600)[Manual vs automatizado]
 
   #v(1em)
@@ -54,7 +57,9 @@
   )
 ]
 
-#linear.slide(title: [Componentes necesarios])[
+= Componentes necesarios
+
+#linear.slide[
   #linear.grid-layout(
     columns: 2,
     gutter: 1em,
@@ -89,7 +94,9 @@
   )
 ]
 
-#linear.slide(title: [Crear el proyecto Django])[
+= Crear el proyecto Django
+
+#linear.slide[
   Primero, instalamos Django y creamos el proyecto:
 
   ```bash
@@ -108,7 +115,9 @@
   ```
 ]
 
-#linear.slide(title: [Dockerfile])[
+= Dockerfile
+
+#linear.slide[
   Creamos un `Dockerfile` para empaquetar nuestra aplicación:
 
   ```dockerfile
@@ -130,7 +139,9 @@
   ]
 ]
 
-#linear.slide(title: [VPC y networking])[
+= VPC y networking
+
+#linear.slide[
   Una VPC (Virtual Private Cloud) es tu red privada en AWS.
 
   #linear.two-columns(
@@ -162,7 +173,9 @@
   Infrastructure as Code
 ]
 
-#linear.slide(title: [Aplicar cambios])[
+= Aplicar cambios
+
+#linear.slide[
   Una vez definida tu infraestructura en Terraform:
 
   ```bash
@@ -181,7 +194,9 @@
   ]
 ]
 
-#linear.slide(title: [Seguridad])[
+= Seguridad
+
+#linear.slide[
   Algunas consideraciones importantes:
 
   #linear.callout(title: [Nunca hagas esto])[
@@ -200,7 +215,9 @@
   ```
 ]
 
-#linear.slide(title: [Próximos pasos])[
+= Próximos pasos
+
+#linear.slide[
   #linear.grid-layout(
     columns: 3,
     gutter: 1em,
@@ -226,6 +243,8 @@
 #linear.focus-slide[
   ¡Gracias!
 ]
+
+= ¿Preguntas?
 
 #linear.slide(footer: none)[
   #align(center + horizon)[

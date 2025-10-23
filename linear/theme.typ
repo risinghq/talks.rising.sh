@@ -36,12 +36,6 @@
     fill: colors.fg,
   )
 
-  // Spacing after headings
-  show heading: it => {
-    it
-    v(0.6em)
-  }
-
   // Link styling
   show link: set text(fill: colors.accent)
 

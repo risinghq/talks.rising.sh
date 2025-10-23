@@ -106,24 +106,19 @@
 }
 
 // Outline/table of contents slide
-#let outline-slide(title: [Contents], depth: 2) = {
-  slide(title: title)[
-    #set text(size: sizes.body)
+#let outline-slide(title: [Plan], depth: 2) = {
+  page({
+    block(
+      width: 100%,
+      inset: (bottom: 0.6em),
+      {
+        text(size: sizes.h2, weight: 600, fill: colors.fg, title)
+      },
+    )
+    v(1.2em)
 
-    #show outline.entry: it => {
-      let indent = 1.5em * (it.level - 1)
+    set text(size: sizes.body)
 
-      block(
-        width: 100%,
-        inset: (left: indent, y: 0.5em),
-        {
-          text(weight: if it.level == 1 { 600 } else { 400 }, it.body)
-          h(1fr)
-          text(fill: colors.muted, it.page)
-        },
-      )
-    }
-
-    #outline(depth: depth)
-  ]
+    outline(title: none, depth: depth)
+  })
 }
