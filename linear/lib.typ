@@ -6,29 +6,25 @@
   fg: rgb("#09090b"),
   muted: rgb("#f4f4f5"),
   muted-fg: rgb("#71717a"),
-
   // Accent colors
   primary: rgb("#18181b"),
   primary-fg: rgb("#fafafa"),
   accent: rgb("#5e6ad2"),
   accent-light: rgb("#eef0fd"),
-
   // Border and dividers
   border: rgb("#e4e4e7"),
   border-strong: rgb("#d4d4d8"),
-
   // Semantic colors
   success: rgb("#22c55e"),
   warning: rgb("#f59e0b"),
   danger: rgb("#ef4444"),
-
   // Code blocks
   code-bg: rgb("#f9fafb"),
   code-border: rgb("#e5e7eb"),
 )
 
 // Typography scale
-#let font-family = "Inter"
+#let font-family = ("Inter", "Arial")
 #let font-mono = ("JetBrains Mono", "Fira Code")
 
 // Create the theme
