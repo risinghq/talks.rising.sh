@@ -53,7 +53,6 @@
 #linear.slide(title: [Componentes necesarios])[
   #linear.grid-layout(
     columns: 2,
-    gutter: 1.5em,
 
     linear.card(
       title: [Docker],
@@ -226,16 +225,7 @@
   ¡Gracias!
 ]
 
-#linear.slide(title: [¿Preguntas?], footer: none)[
-  #align(center + horizon)[
-    #v(2em)
-
-    #text(size: linear.sizes.display, weight: 600)[¿Preguntas?]
-
-    #v(2em)
-
-    #text(size: linear.sizes.small, fill: linear.colors.gray-500)[
-      Documentación y recursos disponibles en el repositorio
-    ]
-  ]
-]
+#linear.qa-slide(
+  question: [¿Preguntas?],
+  subtitle: [Documentación y recursos disponibles en el repositorio],
+)

@@ -19,7 +19,7 @@
 }
 
 // Grid layout helper for cards or other components
-// Note: Grid rows automatically have equal heights in Typst
+// Note: Using auto for rows instead of 1fr to prevent forced equal heights
 #let grid-layout(
   columns: 2,
   gutter: 1em,
@@ -27,6 +27,7 @@
 ) = {
   grid(
     columns: (1fr,) * columns,
+    rows: (auto,),
     column-gutter: gutter,
     row-gutter: gutter,
     ..children.pos(),

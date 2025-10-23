@@ -38,7 +38,6 @@
   gray-900: rgb("#18181b"),
 )
 
-// Typography - Linear uses Inter-like fonts
 #let fonts = (
   sans: ("Geist"),
   mono: ("Geist Mono"),

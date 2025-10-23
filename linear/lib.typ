@@ -5,6 +5,7 @@
   focus-slide,
   image-slide,
   outline-slide,
+  qa-slide,
   section-slide,
   slide,
   split-slide,
@@ -45,6 +46,7 @@
 #let focus-slide = focus-slide
 #let image-slide = image-slide
 #let outline-slide = outline-slide
+#let qa-slide = qa-slide
 #let section-slide = section-slide
 #let slide = slide
 #let split-slide = split-slide

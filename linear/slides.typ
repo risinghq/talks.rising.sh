@@ -298,3 +298,30 @@
 #let blank-slide(body) = {
   page(body)
 }
+
+// Q&A / Questions slide
+#let qa-slide(
+  question: [Questions?],
+  subtitle: [Feel free to reach out],
+) = {
+  page({
+    set align(center + horizon)
+
+    text(
+      size: sizes.display,
+      weight: 600,
+      fill: colors.fg,
+      question,
+    )
+
+    if subtitle != none {
+      v(spacing.xl)
+      text(
+        size: sizes.body,
+        weight: 400,
+        fill: colors.gray-500,
+        subtitle,
+      )
+    }
+  })
+}

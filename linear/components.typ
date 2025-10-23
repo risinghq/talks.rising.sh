@@ -58,46 +58,23 @@
     inset: (x: 1.8em, y: 1.5em),
     breakable: false,
     {
-      // Use table layout to push footer to bottom
+      // Title
+      if title != none {
+        text(size: sizes.body, weight: 600, fill: colors.fg, title)
+        v(0.5em)
+      }
+
+      // Body content
+      set text(size: sizes.small, fill: colors.gray-600, weight: 400)
+      set par(leading: 0.7em)
+      body
+
+      // Footer
       if footer != none {
-        table(
-          columns: (1fr,),
-          rows: (auto, 1fr, auto),
-          stroke: none,
-          inset: 0pt,
-
-          // Title
-          if title != none {
-            [#text(size: sizes.h3, weight: 600, fill: colors.fg, title)]
-          } else {
-            []
-          },
-
-          // Body content (will expand to fill space)
-          {
-            if title != none { v(0.6em) }
-            set text(size: sizes.small, fill: colors.gray-600, weight: 400)
-            set par(leading: 0.75em)
-            body
-          },
-
-          // Footer
-          {
-            v(0.8em)
-            line(length: 100%, stroke: 0.5pt + colors.gray-200.lighten(30%))
-            v(0.8em)
-            text(size: sizes.tiny, fill: colors.gray-400, weight: 400, footer)
-          }
-        )
-      } else {
-        // No footer - simple layout
-        if title != none {
-          text(size: sizes.h3, weight: 600, fill: colors.fg, title)
-          v(0.6em)
-        }
-        set text(size: sizes.small, fill: colors.gray-600, weight: 400)
-        set par(leading: 0.75em)
-        body
+        v(0.8em)
+        line(length: 100%, stroke: 0.5pt + colors.gray-200.lighten(30%))
+        v(0.6em)
+        text(size: sizes.tiny, fill: colors.gray-400, weight: 400, footer)
       }
     },
   )
