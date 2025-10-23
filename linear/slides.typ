@@ -26,7 +26,7 @@
     ))
 
     if subtitle != none {
-      v(1em)
+      v(spacing.md)
       block(width: 90%, text(
         size: sizes.h3,
         weight: 400,
@@ -280,11 +280,21 @@
   page({
     set align(center + horizon)
 
-    text(size: sizes.display, weight: 600, fill: colors.fg, question)
+    block(width: 100%, text(
+      size: sizes.display,
+      weight: 600,
+      fill: colors.fg,
+      question,
+    ))
 
     if subtitle != none {
-      v(spacing.lg)
-      text(size: sizes.body, weight: 400, fill: colors.gray-500, subtitle)
+      v(spacing.sm)
+      block(width: 90%, text(
+        size: sizes.body,
+        weight: 400,
+        fill: colors.gray-500,
+        subtitle,
+      ))
     }
   })
 }
