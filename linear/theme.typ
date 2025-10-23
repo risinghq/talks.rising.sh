@@ -89,7 +89,12 @@
     it
   }
 
-  set par(leading: 0.8em, justify: false, spacing: 0.8em)
+  set par(leading: 0.8em, justify: false, spacing: 1.2em)
+
+  show grid: it => {
+    set par(spacing: 0.6em)
+    it
+  }
 
   show strong: set text(weight: 600, fill: colors.fg)
   show emph: set text(style: "italic", fill: colors.gray-600)

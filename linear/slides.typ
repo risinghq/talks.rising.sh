@@ -147,7 +147,7 @@
     v(spacing.lg)
 
     set text(size: sizes.body, fill: colors.fg)
-    set par(leading: 0.7em)
+    set par(leading: 0.7em, spacing: 0.6em)
 
     context {
       let titles = slide-titles.final()
