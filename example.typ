@@ -141,9 +141,7 @@
   ```
 
   #linear.callout(title: [Listo])[
-    Después de unos minutos, tu infraestructura estará desplegada.
-
-    Ve a la consola de AWS → EC2 y verás tu servidor corriendo.
+    Después de unos minutos, tu infraestructura estará desplegada. Ve a la consola de AWS → EC2 y verás tu servidor corriendo.
   ]
 ]
 

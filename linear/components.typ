@@ -1,43 +1,34 @@
 #import "config.typ": colors, fonts, radius, sizes, spacing
 
 #let callout(body, title: none, type: "default") = {
-  let (bg-color, border-color, icon) = if type == "success" {
-    (colors.success-bg, colors.success, [✓])
+  let (bg-color, border-color) = if type == "success" {
+    (colors.gray-50, colors.gray-400)
   } else if type == "warning" {
-    (colors.warning-bg, colors.warning, [⚠])
+    (colors.gray-50, colors.gray-400)
   } else if type == "danger" {
-    (colors.danger-bg, colors.danger, [✕])
+    (colors.gray-50, colors.gray-400)
   } else if type == "info" {
-    (colors.info-bg, colors.info, [ℹ])
+    (colors.gray-50, colors.gray-400)
   } else {
-    (colors.gray-50, colors.gray-300, none)
+    (colors.gray-50, colors.gray-400)
   }
 
   block(
     width: 100%,
     fill: bg-color,
     stroke: (
-      left: 2pt + border-color,
-      rest: 0.75pt + colors.gray-200.lighten(50%),
+      left: 4pt + border-color,
+      rest: 0.5pt + colors.gray-200,
     ),
-    radius: radius.sm,
-    inset: (x: 1em, y: 0.9em),
+    radius: radius.md,
+    inset: (x: 1.2em, y: 1em),
     breakable: false,
     {
       if title != none {
-        grid(
-          columns: if icon != none { (auto, 1fr) } else { (1fr,) },
-          column-gutter: 0.5em,
-          align: (horizon, horizon),
-          if icon != none {
-            text(weight: 600, size: sizes.small, fill: border-color)[#icon]
-          },
-          text(weight: 600, size: sizes.small, fill: colors.gray-600)[#title]
-        )
-        v(0.4em)
+        text(weight: 700, size: sizes.body, fill: colors.gray-900)[#title]
       }
-      set text(size: sizes.small, fill: colors.gray-600, weight: 400)
-      set par(leading: 0.65em)
+      set text(size: sizes.body, fill: colors.gray-700, weight: 400)
+      set par(leading: 0.7em)
       body
     },
   )
