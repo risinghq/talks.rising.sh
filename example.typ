@@ -538,11 +538,11 @@
 )[
   En este workshop desplegaste:
 
-  - ✓ Un proyecto Django en producción
-  - ✓ Dockerizado y versionado en ECR
-  - ✓ Corriendo en EC2 con infraestructura como código (Terraform)
-  - ✓ Conectado a una base de datos PostgreSQL gestionada (RDS)
-  - ✓ Con dominio personalizado y HTTPS
+  - Un proyecto Django en producción
+  - Dockerizado y versionado en ECR
+  - Corriendo en EC2 con infraestructura como código (Terraform)
+  - Conectado a una base de datos PostgreSQL gestionada (RDS)
+  - Con dominio personalizado y HTTPS
 
   #linear.callout(title: [¡Felicidades!])[
     Todo usando el tier gratuito de AWS.
