@@ -1,26 +1,22 @@
-#import "linear/lib.typ": linear
+#import "linear/lib.typ": focus-slide, outline-slide, slide, theme, title-slide
+#import "linear/lib.typ": badge, callout, card, grid-layout, two-columns
+#import "linear/lib.typ": colors
 
-#show: linear.theme.with(
-  aspect-ratio: "16-9",
-  config-info: (
-    title: "Desplegando Django en AWS",
-    subtitle: "El camino correcto",
-    author: "Cloud Engineering Workshop",
-    date: datetime.today(),
-  ),
-)
+#show: theme.with(aspect-ratio: "16-9")
 
-#(linear.title-slide)(
-  title: [Desplegando Django en AWS],
-  subtitle: [El camino correcto: Docker, Terraform y PostgreSQL],
+// Title slide - direct function call with parameters
+#title-slide(
+  title: [Deploy en la nube... ☁️],
+  subtitle: [AWS (EC2, Cloudwatch) + Django + Docker + nginx],
   author: [Cloud Engineering Workshop],
-  date: [Octubre 2025],
+  date: datetime.today().display(),
 )
 
-#(linear.outline-slide)(depth: 2)
+// Outline slide
+#outline-slide(depth: 2)
 
-// Regular slide
-#(linear.slide)(
+// Regular slide - clean syntax
+#slide(
   title: [El resultado final],
   subtitle: [Lo que vamos a construir hoy],
 )[
@@ -34,20 +30,18 @@
 
   #v(1em)
 
-  #(linear.callout)(
-    title: [Tip importante],
-  )[
+  #callout(title: [Tip importante])[
     Todo esto lo haremos usando el tier gratuito de AWS.
   ]
 ]
 
 // Slide with two columns
-#(linear.slide)(title: [Por qué hacerlo bien])[
+#slide(title: [Por qué hacerlo bien])[
   #text(size: 24pt, weight: 600)[Manual vs automatizado]
 
   #v(1em)
 
-  #(linear.two-columns)(
+  #two-columns(
     split: 50%,
     [
       *Forma manual:*
@@ -57,7 +51,7 @@
       - Difícil de revisar
     ],
     [
-      *Con código:* #h(0.3em) #(linear.badge)[Recomendado]
+      *Con código:* #h(0.3em) #badge[Recomendado]
       - Versionado en git
       - Repetible
       - Revisable
@@ -66,35 +60,34 @@
   )
 ]
 
-// Slide with cards
-#(linear.slide)(title: [Componentes necesarios])[
-  #grid(
-    columns: (1fr, 1fr),
-    column-gutter: 1em,
-    row-gutter: 1em,
+// Slide with cards using grid-layout helper
+#slide(title: [Componentes necesarios])[
+  #grid-layout(
+    columns: 2,
+    gutter: 1em,
 
-    (linear.card)(
+    card(
       title: [Docker],
       footer: [Paso 2],
     )[
       Empaqueta tu aplicación con todas sus dependencias en una imagen portable.
     ],
 
-    (linear.card)(
+    card(
       title: [Amazon ECR],
       footer: [Paso 3],
     )[
       Registry para hospedar tus imágenes Docker en AWS.
     ],
 
-    (linear.card)(
+    card(
       title: [Terraform],
       footer: [Paso 4],
     )[
       Infrastructure as Code para definir recursos de forma declarativa.
     ],
 
-    (linear.card)(
+    card(
       title: [PostgreSQL RDS],
       footer: [Paso 5],
     )[
@@ -104,7 +97,7 @@
 ]
 
 // Slide with code
-#(linear.slide)(title: [Crear el proyecto Django])[
+#slide(title: [Crear el proyecto Django])[
   Primero, instalamos Django y creamos el proyecto:
 
   ```bash
@@ -124,7 +117,7 @@
 ]
 
 // Slide with inline code and callouts
-#(linear.slide)(title: [Dockerfile])[
+#slide(title: [Dockerfile])[
   Creamos un `Dockerfile` para empaquetar nuestra aplicación:
 
   ```dockerfile
@@ -141,16 +134,16 @@
 
   #v(0.5em)
 
-  #(linear.callout)(title: [Importante])[
+  #callout(title: [Importante])[
     Usamos `slim-bullseye` para reducir el tamaño de la imagen y mejorar la seguridad.
   ]
 ]
 
 // Slide with mixed content
-#(linear.slide)(title: [VPC y networking])[
+#slide(title: [VPC y networking])[
   Una VPC (Virtual Private Cloud) es tu red privada en AWS.
 
-  #(linear.two-columns)(
+  #two-columns(
     split: 60%,
     [
       ```hcl
@@ -167,21 +160,21 @@
     [
       *Componentes clave:*
 
-      - VPC #(linear.badge)[Red base]
-      - Internet Gateway #(linear.badge)[Acceso web]
-      - Subnets #(linear.badge)[Divisiones]
-      - Security Groups #(linear.badge)[Firewall]
+      - VPC #badge[Red base]
+      - Internet Gateway #badge[Acceso web]
+      - Subnets #badge[Divisiones]
+      - Security Groups #badge[Firewall]
     ],
   )
 ]
 
 // Focus slide
-#(linear.focus-slide)[
+#focus-slide[
   Infrastructure as Code
 ]
 
 // Slide with success message
-#(linear.slide)(title: [Aplicar cambios])[
+#slide(title: [Aplicar cambios])[
   Una vez definida tu infraestructura en Terraform:
 
   ```bash
@@ -193,7 +186,7 @@
 
   #v(1em)
 
-  #(linear.callout)(title: [Listo])[
+  #callout(title: [Listo])[
     Después de unos minutos, tu infraestructura estará desplegada.
 
     Ve a la consola de AWS → EC2 y verás tu servidor corriendo.
@@ -201,10 +194,10 @@
 ]
 
 // Slide with important note
-#(linear.slide)(title: [Seguridad])[
+#slide(title: [Seguridad])[
   Algunas consideraciones importantes:
 
-  #(linear.callout)(title: [Nunca hagas esto])[
+  #callout(title: [Nunca hagas esto])[
     - No pongas credenciales en el código
     - No uses `DEBUG = True` en producción
     - No expongas todos los puertos al internet
@@ -221,42 +214,42 @@
 ]
 
 // Final slide with cards
-#(linear.slide)(title: [Próximos pasos])[
-  #grid(
-    columns: (1fr, 1fr, 1fr),
-    column-gutter: 1em,
+#slide(title: [Próximos pasos])[
+  #grid-layout(
+    columns: 3,
+    gutter: 1em,
 
-    (linear.card)(title: [Optimizar])[
+    card(title: [Optimizar])[
       Reduce el tamaño de la imagen Docker con `.dockerignore`
     ],
 
-    (linear.card)(title: [CI/CD])[
+    card(title: [CI/CD])[
       Automatiza deploys con GitHub Actions
     ],
 
-    (linear.card)(title: [Monitoreo])[
+    card(title: [Monitoreo])[
       Implementa logs con CloudWatch
     ],
   )
 
   #v(1em)
 
-  La mejor forma de aprender es construyendo. #(linear.badge)[Empieza hoy]
+  La mejor forma de aprender es construyendo. #badge[Empieza hoy]
 ]
 
 // Thank you slide
-#(linear.focus-slide)[
+#focus-slide[
   ¡Gracias!
 ]
 
 // Q&A slide
-#(linear.slide)(footer: none)[
+#slide(footer: none)[
   #align(center + horizon)[
     #text(size: 40pt, weight: 600)[¿Preguntas?]
 
     #v(2em)
 
-    #text(size: 18pt, fill: (linear.colors.muted))[
+    #text(size: 18pt, fill: colors.muted)[
       Documentación y recursos disponibles en el repositorio
     ]
   ]
