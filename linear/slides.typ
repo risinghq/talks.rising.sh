@@ -3,7 +3,6 @@
 #let slide-titles = state("slide-titles", ())
 #let slide-counter = counter("slide-num")
 
-
 #let title-slide(
   title: none,
   subtitle: none,
@@ -64,7 +63,7 @@
 ) = {
   if title != none {
     slide-titles.update(t => {
-      t.push(title)
+      t.push((title: title, subtitle: subtitle))
       t
     })
   }
@@ -199,7 +198,7 @@
           column-gutter: 2em,
           // First column
           {
-            for (i, slide-title) in first-col.enumerate() {
+            for (i, slide-info) in first-col.enumerate() {
               grid(
                 columns: (auto, 1fr),
                 column-gutter: 0.8em,
@@ -210,7 +209,19 @@
                 )[#(i + 1).],
                 link(
                   label("slide-" + str(i + 1)),
-                  text(weight: 400, fill: colors.fg)[#slide-title],
+                  {
+                    text(weight: 400, fill: colors.fg)[#slide-info.title]
+                    if slide-info.subtitle != none {
+                      text(
+                        weight: 400,
+                        fill: colors.gray-500,
+                      )[#" / "]
+                      text(
+                        weight: 400,
+                        fill: colors.gray-500,
+                      )[#slide-info.subtitle]
+                    }
+                  },
                 ),
               )
               if i < first-col.len() - 1 {
@@ -220,7 +231,7 @@
           },
           // Second column
           {
-            for (i, slide-title) in second-col.enumerate() {
+            for (i, slide-info) in second-col.enumerate() {
               let idx = mid + i
               grid(
                 columns: (auto, 1fr),
@@ -232,7 +243,19 @@
                 )[#(idx + 1).],
                 link(
                   label("slide-" + str(idx + 1)),
-                  text(weight: 400, fill: colors.fg)[#slide-title],
+                  {
+                    text(weight: 400, fill: colors.fg)[#slide-info.title]
+                    if slide-info.subtitle != none {
+                      text(
+                        weight: 400,
+                        fill: colors.gray-500,
+                      )[#" / "]
+                      text(
+                        weight: 400,
+                        fill: colors.gray-500,
+                      )[#slide-info.subtitle]
+                    }
+                  },
                 ),
               )
               if i < second-col.len() - 1 {
