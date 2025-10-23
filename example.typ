@@ -67,7 +67,7 @@
 
       #v(1em)
       #(linear.badge)(type: "success")[Recomendado]
-    ]
+    ],
   )
 ]
 
@@ -177,7 +177,7 @@
       - Internet Gateway #(linear.badge)[Acceso web]
       - Subnets #(linear.badge)[Divisiones]
       - Security Groups #(linear.badge)[Firewall]
-    ]
+    ],
   )
 ]
 

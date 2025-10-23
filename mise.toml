@@ -1,5 +1,6 @@
 [tools]
 typst = "0.13.1"
+typstyle = "0.13.18"
 
 [tasks.compile]
 description = "transform to pdf"

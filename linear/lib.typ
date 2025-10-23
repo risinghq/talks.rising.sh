@@ -7,22 +7,18 @@
   fg: rgb("#09090b"),
   muted: rgb("#f4f4f5"),
   muted-fg: rgb("#71717a"),
-  
   // Accent colors
   primary: rgb("#18181b"),
   primary-fg: rgb("#fafafa"),
   accent: rgb("#5e6ad2"),
   accent-light: rgb("#eef0fd"),
-  
   // Border and dividers
   border: rgb("#e4e4e7"),
   border-strong: rgb("#d4d4d8"),
-  
   // Semantic colors
   success: rgb("#22c55e"),
   warning: rgb("#f59e0b"),
   danger: rgb("#ef4444"),
-  
   // Code blocks
   code-bg: rgb("#f9fafb"),
   code-border: rgb("#e5e7eb"),
@@ -36,50 +32,50 @@
 #let linear-theme(
   aspect-ratio: "16-9",
   config-info: (:),
-  body
+  body,
 ) = {
   set page(
     paper: "presentation-" + aspect-ratio,
     fill: linear-colors.bg,
     margin: (x: 2em, y: 1.5em),
   )
-  
+
   set text(
     font: font-family,
     size: 20pt,
     fill: linear-colors.fg,
     weight: 400,
   )
-  
+
   // Headings
   show heading.where(level: 1): set text(
     size: 48pt,
     weight: 600,
     fill: linear-colors.primary,
   )
-  
+
   show heading.where(level: 2): set text(
     size: 32pt,
     weight: 600,
     fill: linear-colors.primary,
   )
-  
+
   show heading.where(level: 3): set text(
     size: 24pt,
     weight: 500,
     fill: linear-colors.primary,
   )
-  
+
   // Add subtle spacing after headings
   show heading: it => {
     it
     v(0.5em)
   }
-  
+
   // Links
   show link: set text(fill: linear-colors.accent)
   show link: underline
-  
+
   // Code blocks
   show raw.where(block: true): it => {
     block(
@@ -98,10 +94,10 @@
           fill: linear-colors.fg,
         )
         it
-      }
+      },
     )
   }
-  
+
   // Inline code
   show raw.where(block: false): it => {
     box(
@@ -112,35 +108,35 @@
         font: font-mono,
         size: 0.9em,
         fill: linear-colors.fg,
-        it
-      )
+        it,
+      ),
     )
   }
-  
+
   // Lists with custom styling
   set list(
     indent: 1em,
     body-indent: 0.5em,
-    marker: ([•], [◦], [▸])
+    marker: ([•], [◦], [▸]),
   )
-  
+
   set enum(
     indent: 1em,
     body-indent: 0.5em,
   )
-  
+
   // Better line spacing
   set par(
     leading: 0.65em,
     justify: false,
   )
-  
+
   // Strong text
   show strong: set text(weight: 600, fill: linear-colors.primary)
-  
+
   // Emphasis
   show emph: set text(style: "italic", fill: linear-colors.muted-fg)
-  
+
   body
 }
 
@@ -150,7 +146,7 @@
   subtitle: none,
   footer: auto,
   show-header: true,
-  body
+  body,
 ) = {
   let header-content = if show-header and title != none {
     block(
@@ -163,11 +159,11 @@
           v(0.3em)
           text(size: 18pt, fill: linear-colors.muted-fg, subtitle)
         }
-      }
+      },
     )
     v(1em)
   }
-  
+
   let footer-content = if footer != auto and footer != none {
     v(1fr)
     block(
@@ -178,10 +174,10 @@
         v(0.3em)
         set text(size: 14pt, fill: linear-colors.muted-fg)
         footer
-      }
+      },
     )
   }
-  
+
   page({
     header-content
     body
@@ -199,7 +195,7 @@
 ) = {
   page({
     set align(center + horizon)
-    
+
     // Main title
     block(
       width: 100%,
@@ -208,11 +204,11 @@
           size: 56pt,
           weight: 700,
           fill: linear-colors.primary,
-          title
+          title,
         )
-      }
+      },
     )
-    
+
     // Subtitle
     if subtitle != none {
       v(0.5em)
@@ -223,12 +219,12 @@
             size: 28pt,
             weight: 400,
             fill: linear-colors.muted-fg,
-            subtitle
+            subtitle,
           )
-        }
+        },
       )
     }
-    
+
     // Divider
     v(2em)
     block(
@@ -237,7 +233,7 @@
       fill: linear-colors.border-strong,
     )
     v(2em)
-    
+
     // Author and date
     if author != none or date != none {
       block(
@@ -247,16 +243,16 @@
           if author != none { author }
           if author != none and date != none [ \ ]
           if date != none { date }
-        }
+        },
       )
     }
-    
+
     // Extra info
     if extra != none {
       v(1em)
       block(
         width: 100%,
-        text(size: 18pt, fill: linear-colors.muted-fg, extra)
+        text(size: 18pt, fill: linear-colors.muted-fg, extra),
       )
     }
   })
@@ -274,10 +270,9 @@
 // Two-column layout
 #let two-columns(left, right, split: 50%) = {
   grid(
-    columns: (split, 1fr - split),
+    columns: (split, 1fr),
     column-gutter: 2em,
-    left,
-    right
+    left, right,
   )
 }
 
@@ -298,7 +293,7 @@
   } else {
     (bg: linear-colors.muted, border: linear-colors.border-strong, icon: "•")
   }
-  
+
   block(
     width: 100%,
     fill: colors.bg,
@@ -314,7 +309,7 @@
       }
       set text(size: 18pt)
       body
-    }
+    },
   )
 }
 
@@ -342,10 +337,10 @@
           width: 100%,
           stroke: (top: 1pt + linear-colors.border),
           inset: (top: 0.8em),
-          text(size: 16pt, fill: linear-colors.muted-fg, footer)
+          text(size: 16pt, fill: linear-colors.muted-fg, footer),
         )
       }
-    }
+    },
   )
 }
 
@@ -360,7 +355,7 @@
   } else {
     (bg: linear-colors.muted, fg: linear-colors.fg)
   }
-  
+
   box(
     fill: colors.bg,
     outset: (x: 6pt, y: 3pt),
@@ -369,8 +364,8 @@
       size: 14pt,
       weight: 500,
       fill: colors.fg,
-      body
-    )
+      body,
+    ),
   )
 }
 
@@ -378,43 +373,43 @@
 #let outline-slide(title: [Contenido], depth: 2) = {
   slide(title: title)[
     set text(size: 22pt)
-    
+
     // Custom outline styling
     show outline.entry: it => {
-      let indent = #(1.5em * (it.level - 1))
-      
-      block(
-        width: 100%,
-        inset: (left: indent, y: 0.4em),
-        {
-          if it.level == 1 {
-            text(weight: 600, fill: linear-colors.primary, it.body)
-          } else {
-            text(fill: linear-colors.muted-fg, it.body)
-          }
-          
-          h(1fr)
-          
-          text(
-            fill: linear-colors.muted-fg,
-            size: 18pt,
-            it.page
-          )
-        }
-      )
-      
-      // Add a subtle divider after level 1 entries
-      if it.level == 1 {
-        v(0.2em)
-        block(
-          width: 100%,
-          height: 1pt,
-          fill: linear-colors.border,
-        )
-        v(0.2em)
-      }
+    let indent = calc.mul(1.5em, it.level - 1)
+
+    block(
+    width: 100%,
+    inset: (left: indent, y: 0.4em),
+    {
+    if it.level == 1 {
+    text(weight: 600, fill: linear-colors.primary, it.body)
+    } else {
+    text(fill: linear-colors.muted-fg, it.body)
     }
-    
+
+    h(1fr)
+
+    text(
+    fill: linear-colors.muted-fg,
+    size: 18pt,
+    it.page
+    )
+    }
+    )
+
+    // Add a subtle divider after level 1 entries
+    if it.level == 1 {
+    v(0.2em)
+    block(
+    width: 100%,
+    height: 1pt,
+    fill: linear-colors.border,
+    )
+    v(0.2em)
+    }
+    }
+
     outline(depth: depth, indent: false)
   ]
 }

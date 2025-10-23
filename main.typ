@@ -375,12 +375,12 @@ El `user_data` script se ejecuta cuando el servidor arranca:
     yum install -y docker
     service docker start
     yum install -y aws-cli
-    
+
     docker login -u AWS -p $(aws ecr get-login-password \
       --region us-east-1) <TU_URI>
-    
+
     docker pull <TU_URI>/django-ec2-complete:latest
-    
+
     docker run -d -p 80:8080 \
       --env SECRET_KEY=${var.secret_key} \
       <TU_URI>/django-ec2-complete:latest
@@ -477,7 +477,7 @@ Nuevo archivo para mantener las cosas organizadas:
 # database.tf
 
 resource "aws_db_subnet_group" "default" {
-  subnet_ids = [aws_subnet.subnet1.id, 
+  subnet_ids = [aws_subnet.subnet1.id,
                 aws_subnet.subnet2.id]
   tags = { Name = "Django_EC2_Subnet_Group" }
 }
@@ -649,7 +649,7 @@ resource "aws_acm_certificate" "cert" {
   domain_name       = "tudominio.com"
   validation_method = "DNS"
   subject_alternative_names = ["www.tudominio.com"]
-  
+
   lifecycle {
     create_before_destroy = true
   }
@@ -675,14 +675,14 @@ Si usas otro registrar (GoDaddy, Namecheap), necesitas configurar nameservers ma
 ```hcl
 resource "aws_route53_record" "cert_validation" {
   for_each = {
-    for dvo in aws_acm_certificate.cert.domain_validation_options : 
+    for dvo in aws_acm_certificate.cert.domain_validation_options :
     dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
     }
   }
-  
+
   zone_id = data.aws_route53_zone.selected.zone_id
   name    = each.value.name
   type    = each.value.type
@@ -717,7 +717,7 @@ resource "aws_lb" "default" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = [aws_subnet.subnet1.id, 
+  subnets            = [aws_subnet.subnet1.id,
                         aws_subnet.subnet2.id]
 }
 ```
@@ -750,7 +750,7 @@ resource "aws_lb_listener" "default" {
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
   certificate_arn   = aws_acm_certificate.cert.arn
-  
+
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.default.arn
@@ -767,7 +767,7 @@ resource "aws_route53_record" "root_record" {
   zone_id = data.aws_route53_zone.selected.zone_id
   name    = "tudominio.com"
   type    = "A"
-  
+
   alias {
     name                   = aws_lb.default.dns_name
     zone_id                = aws_lb.default.zone_id
@@ -779,7 +779,7 @@ resource "aws_route53_record" "www_record" {
   zone_id = data.aws_route53_zone.selected.zone_id
   name    = "www.tudominio.com"
   type    = "A"
-  
+
   alias {
     name                   = aws_lb.default.dns_name
     zone_id                = aws_lb.default.zone_id
@@ -794,7 +794,7 @@ No olvides actualizar `CSRF_TRUSTED_ORIGINS`:
 
 ```python
 CSRF_TRUSTED_ORIGINS = [
-  'https://tudominio.com', 
+  'https://tudominio.com',
   'https://www.tudominio.com'
 ]
 ```
