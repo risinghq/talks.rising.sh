@@ -25,15 +25,36 @@ description = "Compile Typst document to PDF"
 alias = "c"
 run = "typst compile --font-path fonts example.typ"
 
+[tasks.compile-html]
+description = "Compile Typst document to HTML (experimental)"
+alias = "ch"
+run = [
+  "typst compile --features html --font-path fonts --format html example.typ example.html",
+]
+
 [tasks.watch]
 description = "Watch and auto-compile on changes"
 alias = "w"
 run = "typst watch --font-path fonts example.typ"
 
+[tasks.watch-html]
+description = "Watch Typst document and serve HTML with live reload (experimental)"
+alias = "wh"
+run = [
+  "typst watch --features html --font-path fonts --format html --port 3000 example.typ example.html",
+]
+
 [tasks.dev]
-description = "Development mode with file watching"
+description = "Development mode with file watching (PDF)"
 alias = "d"
 run = "typst watch --font-path fonts example.typ --open"
+
+[tasks.dev-html]
+description = "Development mode with HTML live server (experimental)"
+alias = "dh"
+run = [
+  "typst watch --features html --font-path fonts --format html --port 3000 --open example.typ example.html",
+]
 
 # Package management
 [tasks.pkg-install]
@@ -48,8 +69,13 @@ run = "pwsh scripts/uninstall-local-pkg.ps1"
 
 # Utility tasks
 [tasks.clean]
-description = "Remove generated PDF files"
-run = ["rm -f example.pdf", "rm -f main.pdf", "rm -f *.pdf"]
+description = "Remove generated PDF and HTML files"
+run = [
+  "rm -f example.pdf",
+  "rm -f main.pdf",
+  "rm -f *.pdf",
+  "rm -f example.html",
+]
 
 [tasks.check]
 description = "Run all checks (format, compile)"

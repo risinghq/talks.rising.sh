@@ -565,10 +565,10 @@
 ]
 
 #linear.slide(
-  title: [Subnets: Dividiendo tu red],
-  subtitle: [Público vs Privado],
+  title: [Terraform],
+  subtitle: [Subnets públicos],
 )[
-  Concepto clave: Una subnet puede ser pública o privada según su configuración de enrutamiento.
+  Una subnet puede ser pública o privada según su configuración de enrutamiento.
 
   #linear.two-columns(
     split: 50%,
@@ -578,11 +578,7 @@
       - Las instancias pueden tener IP pública
       - Usa: servidores web, APIs
 
-      #v(1em)
-      Subnet Privada (no la usamos hoy):
-      - Sin acceso directo a internet
-      - Usa NAT Gateway para salir
-      - Usa: bases de datos, servicios internos
+      Ignoraremos el caso de subnet privada ya que no es necesario para nuestro proyecto.
 
       #v(1em)
       `map_public_ip_on_launch = true` hace que cada instancia en esta subnet reciba automáticamente una IP pública.
@@ -598,18 +594,16 @@
       }
       ```
 
-      Availability Zone: AWS divide cada región en múltiples zonas físicamente separadas. Esto da resiliencia ante fallos de hardware.
+      Availability Zone: AWS divide cada región en múltiples zonas físicamente separadas. Esto da resiliencia ante fallos de hardware (véase el caso de hace unos días cuando us-east-1 cayó).
     ],
   )
 ]
 
 #linear.slide(
-  title: [Route Tables: El GPS de tu red],
-  subtitle: [Dirigiendo el tráfico],
+  title: [Terraform],
+  subtitle: [Route Tables],
 )[
-  ¿Cómo funciona el enrutamiento?
-
-  Cuando un paquete sale de tu instancia EC2, la Route Table decide a dónde enviarlo:
+  *¿Cómo funciona el enrutamiento?* Cuando un paquete sale de tu instancia EC2, la Route Table decide a dónde enviarlo:
 
   ```hcl
   resource "aws_route_table" "public" {
@@ -622,7 +616,7 @@
   }
   ```
 
-  Traducción: "Si el destino NO está en mi VPC (10.0.0.0/16), envía el paquete al Internet Gateway"
+  Es decir: "Si el destino NO está en mi VPC (10.0.0.0/16), envía el paquete al Internet Gateway"
 
   #v(1em)
   Asociación: Conectar la subnet con la route table:
@@ -637,63 +631,62 @@
 ]
 
 #linear.slide(
-  title: [Security Groups: Tu firewall],
-  subtitle: [Control granular de tráfico],
+  title: [Terraform],
+  subtitle: [Security Groups],
 )[
-  Piensa en Security Groups como guardias de seguridad que inspeccionan cada conexión.
+  Puedes pensar en los Security Groups como guardias de seguridad que inspeccionan cada conexión.
 
-  #linear.two-columns(
-    split: 50%,
-    [
-      Reglas de entrada (ingress):
-      - Puerto 80 (HTTP): Para que los usuarios accedan a tu sitio web
-      - Puerto 22 (SSH): Para que TÚ puedas conectarte y administrar el servidor
+  Reglas de entrada (ingress):
+  - Puerto 80 (HTTP): Para que los usuarios accedan a tu sitio web
+  - Puerto 22 (SSH): Para que TÚ puedas conectarte y administrar el servidor
 
-      Regla de salida (egress):
-      - Todos los puertos: El servidor puede iniciar conexiones a cualquier destino (descargar paquetes, actualizar Docker, etc.)
+  Regla de salida (egress):
+  - Todos los puertos: El servidor puede iniciar conexiones a cualquier destino (descargar paquetes, actualizar Docker, etc.)
 
-      #v(1em)
-      #linear.callout(title: [Importante])[
-        `0.0.0.0/0` significa "cualquier IP". En producción, restringe SSH a tu IP o VPN corporativa.
-      ]
-    ],
-    [
-      ```hcl
-      resource "aws_security_group" "ec2_sg" {
-        name   = "django_ec2_sg"
-        vpc_id = aws_vpc.default.id
-
-        ingress {
-          description = "HTTP desde internet"
-          from_port   = 80
-          to_port     = 80
-          protocol    = "tcp"
-          cidr_blocks = ["0.0.0.0/0"]
-        }
-
-        ingress {
-          description = "SSH para admin"
-          from_port   = 22
-          to_port     = 22
-          protocol    = "tcp"
-          cidr_blocks = ["0.0.0.0/0"]
-        }
-
-        egress {
-          from_port   = 0
-          to_port     = 0
-          protocol    = "-1"
-          cidr_blocks = ["0.0.0.0/0"]
-        }
-      }
-      ```
-    ],
-  )
+  #v(1em)
+  #linear.callout(title: [Importante])[
+    `0.0.0.0/0` significa "cualquier IP". En producción, restringe SSH a tu IP o VPN corporativa.
+  ]
 ]
 
 #linear.slide(
-  title: [IAM: Permisos en AWS],
-  subtitle: [Permitiendo que EC2 acceda a ECR],
+  title: [Terraform],
+  subtitle: [Security Groups],
+)[
+  ```hcl
+  resource "aws_security_group" "ec2_sg" {
+    name   = "django_ec2_sg"
+    vpc_id = aws_vpc.default.id
+
+    ingress {
+      description = "HTTP desde internet"
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+      description = "SSH para admin"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+  ```
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [Permisos en AWS],
 )[
   Problema: Tu instancia EC2 necesita descargar la imagen Docker desde ECR. ¿Cómo le damos permiso?
 
@@ -741,8 +734,8 @@
 ]
 
 #linear.slide(
-  title: [La instancia EC2],
-  subtitle: [Juntando todo],
+  title: [Terraform],
+  subtitle: [Instancia EC2],
 )[
   Finalmente, creamos el servidor que ejecutará Django:
 
@@ -763,13 +756,11 @@
     EOF
   }
   ```
-
-  Parámetros clave explicados en la siguiente slide...
 ]
 
 #linear.slide(
-  title: [Entendiendo los parámetros de EC2],
-  subtitle: [Decisiones importantes],
+  title: [Terraform],
+  subtitle: [Parámetros de EC2],
 )[
   #linear.data-table(
     headers: ("Parámetro", "¿Qué hace?", "¿Por qué este valor?"),
@@ -798,8 +789,8 @@
 ]
 
 #linear.slide(
-  title: [User Data: Configuración automática],
-  subtitle: [El script que hace la magia],
+  title: [Terraform],
+  subtitle: [Automatizando el proceso],
 )[
   El script `user_data` se ejecuta UNA VEZ cuando la instancia inicia por primera vez.
 
@@ -818,8 +809,8 @@
 ]
 
 #linear.slide(
-  title: [Variables: Parametrización],
-  subtitle: [Valores que cambian entre entornos],
+  title: [Terraform],
+  subtitle: [Parametrización],
 )[
   ¿Por qué usar variables? Por seguridad, valores sensibles no van en el código. Te da flexibilidad para usar el mismo código en dev, staging y producción. Y facilita la colaboración porque cada desarrollador usa sus propias credenciales.
 
@@ -858,8 +849,8 @@
 ]
 
 #linear.slide(
-  title: [Workflow de Terraform],
-  subtitle: [Del código a la infraestructura],
+  title: [Terraform],
+  subtitle: [Workflow o modo de trabajo],
 )[
   Los 3 comandos esenciales:
 
@@ -878,8 +869,8 @@
 ]
 
 #linear.slide(
-  title: [Outputs: Información útil],
-  subtitle: [Obtener datos después del deployment],
+  title: [Terraform],
+  subtitle: [Outputs],
 )[
   Los outputs muestran información relevante automáticamente después de `apply`:
 
@@ -908,8 +899,8 @@
 ]
 
 #linear.slide(
-  title: [Modificando infraestructura],
-  subtitle: [Terraform detecta cambios automáticamente],
+  title: [Terraform],
+  subtitle: [Modificar infra],
 )[
   Escenario: Quieres abrir el puerto 8000 para debugging.
 
@@ -935,7 +926,7 @@
 ]
 
 #linear.slide(
-  title: [Destruyendo infraestructura],
+  title: [Terraform],
   subtitle: [Limpieza de recursos],
 )[
   Cuando termines con el proyecto:
@@ -948,121 +939,23 @@
 
   #v(1em)
   Orden de destrucción:
-  1. Instancia EC2
-  2. Security Groups
-  3. Route Table Associations
-  4. Route Tables
-  5. Subnets
-  6. Internet Gateway
-  7. VPC
+  - Instancia EC2
+  - Security Groups
+  - Route Table Associations
+  - Route Tables
+  - Subnets
+  - Internet Gateway
+  - VPC
 
   #v(1em)
-  #linear.callout(title: [⚠️ Costos])[
+  #linear.callout(title: [Costos])[
     AWS cobra por recursos activos. Si no destruyes la infraestructura, seguirás pagando por la instancia EC2, IP pública, etc. Destruye lo que no uses.
   ]
 
   Recomendación: `terraform plan -destroy` te muestra qué se eliminará sin hacerlo.
 ]
 
-#linear.section-slide[Paso 5: Base de datos PostgreSQL]
-
-#linear.slide(
-  title: [PostgreSQL en RDS],
-)[
-  Podrías instalar PostgreSQL en tu servidor EC2, pero RDS (Relational Database Service) es mejor:
-  - Backups automáticos
-  - Actualizaciones gestionadas
-  - Alta disponibilidad
-  - Escalabilidad
-
-  #linear.callout(title: [Tier gratuito])[
-    También está incluido en el tier gratuito de AWS.
-  ]
-]
-
-#linear.slide(
-  title: [Terraform: Instancia RDS],
-)[
-  Definimos la base de datos PostgreSQL.
-  #block(width: 95%)[
-    ```hcl
-    variable "db_password" {
-      description = "The password for the database"
-      type        = string
-      sensitive   = true
-    }
-
-    resource "aws_db_instance" "default" {
-      allocated_storage      = 20
-      storage_type           = "gp2"
-      engine                 = "postgres"
-      engine_version         = "16.1"
-      instance_class         = "db.t3.micro" # Free tier
-      identifier             = "my-django-rds"
-      db_name                = "djangodb"
-      username               = "adam"
-      password               = var.db_password
-      db_subnet_group_name   = aws_db_subnet_group.default.name
-      vpc_security_group_ids = [aws_security_group.rds_sg.id]
-      skip_final_snapshot    = true
-      publicly_accessible    = true
-    }
-    ```
-  ]
-]
-
-#linear.slide(
-  title: [Conectar Django a RDS],
-  subtitle: [Variables de entorno],
-)[
-  Primero, actualizamos `settings.py` para leer la configuración de la base de datos desde variables de entorno.
-  #block(width: 80%)[
-    ```python
-    import os
-
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME'),
-            'USER': os.getenv('DB_USER_NM'),
-            'PASSWORD': os.getenv('DB_USER_PW'),
-            'HOST': os.getenv('DB_IP'),
-            'PORT': os.getenv('DB_PORT'),
-        }
-    }
-    ```
-  ]
-
-  #linear.callout(title: [Importante], type: "danger")[
-    Nunca pongas credenciales directamente en el código.
-  ]
-]
-
-#linear.slide(
-  title: [Conectar Django a RDS],
-  subtitle: [Actualizar el servidor EC2],
-)[
-  Pasamos las variables de la base de datos al contenedor Docker en `main.tf`:
-  #block(width: 90%)[
-    ```hcl
-    // Dentro del user_data de aws_instance.web
-    docker run -d -p 80:8080 \
-      --env SECRET_KEY=${var.secret_key} \
-      --env DB_NAME=djangodb \
-      --env DB_USER_NM=adam \
-      --env DB_USER_PW=${var.db_password} \
-      --env DB_IP=${aws_db_instance.default.address} \
-      --env DB_PORT=5432 \
-      <TU_URI>/django-ec2-complete:latest
-    ```
-  ]
-
-  Luego, redesplegamos:
-  1. Reconstruye y sube la nueva imagen Docker.
-  2. Ejecuta `terraform apply`.
-]
-
-#linear.section-slide[Paso 6: Dominio y HTTPS]
+#linear.section-slide[Dominio y HTTPS]
 
 #linear.slide(
   title: [Dominio personalizado],
@@ -1161,34 +1054,6 @@
   #linear.callout(title: [¡Felicidades!])[
     Todo usando el tier gratuito de AWS.
   ]
-]
-
-
-#linear.slide(title: [Próximos pasos])[
-  Algunas ideas para extender este proyecto:
-
-  #linear.grid-layout(
-    columns: 3,
-    gutter: 1.5em,
-    linear.card(title: [Optimizar Docker])[
-      Usa `.dockerignore` para reducir el tamaño de la imagen.
-    ],
-    linear.card(title: [CI/CD])[
-      Automatiza el deployment con GitHub Actions.
-    ],
-    linear.card(title: [Monitoreo])[
-      Implementa logs y métricas con CloudWatch.
-    ],
-    linear.card(title: [Static Files])[
-      Usa S3 + CloudFront para servir archivos estáticos.
-    ],
-    linear.card(title: [Auto-scaling])[
-      Configura múltiples instancias EC2 detrás del load balancer.
-    ],
-    linear.card(title: [Ambientes])[
-      Crea ambientes separados para staging y producción.
-    ],
-  )
 ]
 
 #linear.slide(
