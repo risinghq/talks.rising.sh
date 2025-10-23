@@ -43,7 +43,6 @@
   Empecemos verificando qué tienes ya instalado. Abre tu terminal (PowerShell o CMD en Windows, Terminal en Mac/Linux) y ejecuta estos comandos uno por uno:
 
   ```bash
-  # Verifica si tienes Python
   python --version || python3 --version
 
   # Verifica si tienes AWS CLI
@@ -54,7 +53,7 @@
   ```
 
   #figure(
-    image("img/version.png", width: 80%),
+    image("img/version.png", width: 75%),
   )
 
   Si ves que aparecen números de versión, ¡genial! Esa herramienta está lista y puedes continuar. Si en cambio te muestra un error o dice que el comando no existe, significa que necesitas instalarla.
@@ -81,194 +80,373 @@
   title: [Django],
   subtitle: [Configuración inicial],
 )[
-  Vamos a empezar con la plantilla por defecto que viene con Django. Estaré usando uv:
-  #block(width: 80%)[
-    ```bash
-    mkdir ejemplo && cd ejemplo
-    uv init --bare
-    uv add django
-    uv run python -m django startproject proyecto1
-    cd proyecto1
+  Vamos a crear un proyecto base de Django desde cero.
+  Este primer proyecto servirá para entender la estructura y preparar el entorno correctamente.
 
-    uv add django gunicorn psycopg2-binary
-    ```
-  ]
+  1. Crear la carpeta del proyecto
+    #block(width: 80%)[
+      ```bash
+      mkdir ejemplo && cd ejemplo
+      ```
+    ]
 
-  Si estás usando python:
-  #block(width: 80%)[
-    ```bash
-    mkdir ejemplo && cd ejemplo
-    python -m pip install django
-    python -m django startproject proyecto1
-    cd proyecto1
+    Esto crea una carpeta vacía donde guardaremos todo el código.
+    Mantener cada proyecto en su propio directorio evita confusiones y mezclas de archivos.
 
-    # Luego, tienes que crear el entorno virtual (uv lo maneja por nosotros en el caso anterior)
-    python -m venv venv
-    source venv/bin/activate
+  2. Crear un entorno virtual
+    #block(width: 80%)[
+      ```bash
+      python -m venv venv
+      source venv/bin/activate  # En Windows usa: venv\Scripts\activate
+      ```
+    ]
 
-    python -m pip install django gunicorn psycopg2-binary
-    ```
-  ]
+    El entorno virtual aísla las dependencias del proyecto.
+    Esto evita conflictos entre versiones de librerías en distintos proyectos.
 
-  Luego, las dependencias de producción:
-  #block(width: 80%)[
-    ```bash
-    pip install django gunicorn psycopg2-binary
-    pip freeze > requirements.txt
-    ```
-  ]
+  3. Instalar dependencias básicas
+    #block(width: 80%)[
+      ```bash
+      python -m pip install django gunicorn psycopg2-binary
+      ```
+    ]
+    Se instalan tres paquetes esenciales:
 
-  - `gunicorn`: para correr Django en producción (no uses `runserver`)
-  - `psycopg2-binary`: para conectar a PostgreSQL
+    - django: framework principal
+    - gunicorn: servidor de producción
+    - psycopg2-binary: conector para bases de datos PostgreSQL
+      Empezar con estas dependencias desde el inicio permite usar la misma base tanto en desarrollo como en producción.
+
+  4. Crear el proyecto Django
+    #block(width: 80%)[
+      ```bash
+      python -m django startproject proyecto1
+      cd proyecto1
+      ```
+    ]
+    Este comando genera la estructura inicial del proyecto con los archivos de configuración y el servidor de desarrollo.
 ]
 
 #linear.slide(
   title: [Django],
   subtitle: [Ejecutar localmente],
 )[
-  Para verificar que todo funciona:
-
+  Antes de levantar el servidor local, aplicamos las migraciones
   #block(width: 80%)[
     ```bash
-    uv run python manage.py migrate
-    uv run python manage.py runserver
+    python manage.py migrate
     ```
   ]
+  Esto crea la base de datos inicial que Django necesita para manejar usuarios, sesiones y otros componentes internos. Por si acaso, esto forma parte de la plantilla generada por Django. No vamos a tocar bases de datos en este workshop.
 
-  Visita `http://127.0.0.1:8000/` y deberías ver Django funcionando.
-
-  Esto es solo el inicio. Ahora viene la parte interesante.
-]
-
-#linear.section-slide[Paso 2: Dockerización]
-
-#linear.slide(
-  title: [Por qué Docker],
-)[
-  Docker resuelve el problema clásico: "funciona en mi máquina".
-
-  Con Docker:
-  - Empaquetas tu aplicación con todas sus dependencias.
-  - La imagen corre igual en tu laptop, en AWS, en Google Cloud.
-  - Simplifica el deployment considerablemente.
-]
-
-#linear.slide(
-  title: [Crear el Dockerfile],
-)[
-  ```dockerfile
-  FROM python:3.12.2-slim-bullseye
-  ENV PYTHONBUFFERED=1
-  ENV PORT 8080
-  WORKDIR /app
-  COPY . /app/
-  RUN pip install --upgrade pip
-  RUN pip install -r requirements.txt
-  CMD gunicorn django_ec2_complete.wsgi:application \
-      --bind 0.0.0.0:"${PORT}"
-  EXPOSE ${PORT}
-  ```
-  #linear.callout(title: [Nota de optimización])[
-    Usamos `slim-bullseye` para una imagen más pequeña y segura.
-  ]
-]
-
-#linear.slide(
-  title: [Construir y ejecutar Docker],
-)[
-  Construye la imagen:
+  Ahora, podemos ejecutar el servidor local
   #block(width: 80%)[
     ```bash
-    docker build -t django-ec2-complete:latest .
+    python manage.py runserver
     ```
   ]
+  Este comando inicia el servidor de desarrollo.
+  No se usa en producción, pero permite probar la aplicación localmente.
 
-  Ejecuta el contenedor:
-  #block(width: 80%)[
-    ```bash
-    docker run -p 8000:8080 django-ec2-complete:latest
-    ```
-  ]
+  #image("img/server.png", width: 80%)
 
-  Visita `http://localhost:8000/` y Django está corriendo dentro de Docker.
+  Finalmente, podemos probar en el navegador:
+  #link("http://127.0.0.1:8000/")[http://127.0.0.1:8000/]
+
+  Si aparece la página de inicio de Django, el entorno está correctamente configurado.
+
+  #image("img/local.png", width: 100%)
 ]
 
-#linear.slide(title: [Intermisión: Historia de Docker])[
+#linear.section-slide[Herramienta \#1: Docker]
+
+#linear.slide(
+  title: [Docker],
+  subtitle: [¿Por qué usarlo?],
+)[
   #linear.two-columns(
     split: 50%,
     [
-      *Antes de Docker (circa 2010)*
-
-      El deployment era un desastre:
-      - Instalabas Python manualmente en cada servidor.
-      - Configurabas nginx, systemd, etc.
-      - Cada servidor era una bola de nieve única y frágil.
+      *Sin Docker:*
+      - Configurar manualmente cada servidor
+      - Instalar dependencias (Python, Nginx, etc.)
+      - Ajustar según el sistema operativo
+      - Inconsistencias entre entornos
+      - "Funciona en mi máquina, pero no en producción"
     ],
     [
-      *El momento Docker (2013)*
-
-      De repente:
-      - Tu aplicación es una imagen.
-      - La imagen contiene todo lo necesario.
-      - Despliegas la misma imagen en todos lados.
+      *Con Docker:*
+      - Empaquetas la app junto con sus dependencias
+      - Misma imagen funciona en cualquier entorno
+      - Despliegues consistentes
+      - Aislamiento entre aplicaciones
     ],
   )
+
+  Para este workshop *no necesitas instalar Docker en tu máquina local*, ya que [1] es un programa que consume bastantes recursos y [2] además las imágenes necesarias ya están disponibles en Docker Hub.
+
+  #linear.callout(title: [¡No te abrumes!])[
+    No necesitas memorizar cada comando.
+    Lo importante es entender *qué parámetros ajustar y cuándo*.
+    En la mayoría de los casos, tu *Dockerfile será muy similar* entre proyectos.
+  ]
+]
+
+#linear.slide(
+  title: [Docker],
+  subtitle: [Conceptos básicos],
+)[
+  *Imagen*: Paquete inmutable que contiene tu aplicación, dependencias, configuración y sistema operativo base. Se construye una vez con `docker build`.
+
+  *Contenedor*: Instancia ejecutable de una imagen. Cada vez que haces `docker run` creas un nuevo contenedor. Puedes tener múltiples contenedores de la misma imagen.
+
+  *Dockerfile*: Archivo de texto con instrucciones para construir una imagen paso a paso.
+
+  #v(1em)
+
+  #align(center)[
+    #figure(
+      image("img/docker.png", width: 60%),
+    )
+  ]
+]
+
+#linear.slide(
+  title: [Docker],
+  subtitle: [El Dockerfile],
+)[
+  ```dockerfile
+  FROM python:3.14.0-slim-bullseye
+
+  # Puerto en el que el contenedor expone a la aplicación
+  ENV PORT=8080
+
+  # Carpeta de trabajo dentro del contenedor
+  WORKDIR /app
+
+  # Copia todo el contenido de la carpeta "proyecto1" (directorio actual)
+  # al directorio /app dentro del contenedor Docker.
+  COPY . /app/
+  # Instalar dependencias
+  RUN pip install --upgrade pip && pip install -r requirements.txt
+
+  CMD gunicorn proyecto1.wsgi:application --bind 0.0.0.0:"${PORT}"
+  EXPOSE ${PORT}
+  ```
+
+  Cada línea es una capa. Docker cachea cada capa para acelerar los siguientes builds.
+]
+
+#linear.slide(
+  title: [Docker],
+  subtitle: [Comandos del Dockerfile],
+)[
+  #linear.data-table(
+    headers: ("Comando", "Descripción"),
+    column-widths: (20%, 80%),
+    rows: (
+      [#raw("FROM")],
+      [Imagen base del sistema operativo y runtime. Ejemplo: `python:3.14.0-slim-bullseye`],
+      [#raw("WORKDIR")],
+      [Directorio de trabajo dentro del contenedor. Crea el directorio si no existe],
+      [#raw("ENV")],
+      [Variables de entorno disponibles durante build y ejecución],
+      [#raw("COPY")],
+      [Copia archivos desde tu máquina al contenedor. Ejemplo: `COPY . /app/`],
+      [#raw("RUN")],
+      [Ejecuta comandos durante la construcción. Ejemplo: `pip install -r requirements.txt`],
+      [#raw("CMD")],
+      [Comando que se ejecuta al iniciar el contenedor. Solo puede haber uno],
+      [#raw("EXPOSE")],
+      [Documenta el puerto que usa la aplicación. No publica el puerto automáticamente],
+    ),
+  )
+]
+
+#linear.slide(
+  title: [Docker],
+  subtitle: [Build vs Runtime],
+)[
+  Docker tiene dos fases distintas:
+
+  #v(1em)
+
+  *Build time* ( `docker build` ):
+  - Se ejecutan: FROM,  WORKDIR, COPY, RUN, ENV
+  - Resultado: imagen inmutable
+  - Se ejecuta una sola vez (o cuando cambias el Dockerfile)
+  - Usa caché de capas para acelerar
+
+  #v(1em)
+
+  *Runtime* ( `docker run` ):
+  - Se ejecuta: CMD
+  - Resultado: contenedor en ejecución
+  - Cada `docker run` crea un nuevo contenedor
+  - El contenedor se detiene cuando el proceso de CMD termina
+
+  #v(1em)
+]
+
+/*
+#linear.slide(
+  title: [Docker],
+  subtitle: [Sistema de archivos en Linux],
+)[
+  Docker se ejecuta sobre Linux.
+  Cada contenedor es como una pequeña instalación de Linux aislada, con su propio sistema de archivos.
+
+  *Estructura básica*: La raíz del sistema es `/`, también llamada "root". En Windows, podrías compararla con `C:\`. Todas las rutas parten desde `/`. En Linux, las rutas pueden ser absolutas o relativas.
+
+  *Rutas absolutas y relativas*:
+  - `/app` es una ruta absoluta (empieza desde `/`)
+  - `.` es la carpeta actual. Por ejemplo: si estás en `/app`, entonces `.` significa `/app`
+  - `..` es la carpeta padre o superior. Ejemplo: si estás en `/app/python` , entonces  `..`  significa `/app`
+
+  *Comandos comunes en Dockerfile*
+  - `WORKDIR /app` crea (si no existe) y cambia al directorio `/app`
+  - `COPY . /app/` copia tu código local al directorio `/app` dentro del contenedor
+
+  El sistema de archivos de un contenedor es temporal. Es decir, si eliminas el contenedor, se pierden los cambios. Para guardar datos de forma persistente, usa volúmenes.
+]
+*/
+
+#linear.slide(
+  title: [Docker],
+  subtitle: [Comandos],
+)[
+  Ahora que tenemos el Dockerfile, podemos construir la imagen y ejecutar el contenedor.
+
+  Para construir imagen, ejecuta:
+  ```bash
+  docker build -t proyecto1-ec2:latest .
+  ```
+
+  Una vez construida la imagen, puedes ejecutar el contenedor:
+  ```bash
+  docker run -d -p 8000:8080 proyecto1-ec2:latest
+  ```
+
+  Este comando ejecuta el contenedor y enlaza el puerto 8080 del contenedor con el puerto 8000 de la máquina host.
+  En otras palabras, puedes acceder a la aplicación desde #link("http://localhost:8000")[http://localhost:8000]
+
+  Para pausar la imagen, solo ejecuta:
+  ```bash
+  docker ps
+  docker kill <image_id>
+  ```
 ]
 
 #linear.section-slide[Paso 3: Amazon ECR]
 
-#linear.slide(title: [Por qué importa hacerlo bien])[
-  Podrías hacer click en la consola de AWS y crear recursos manualmente. Pero eso tiene problemas:
+#linear.slide(
+  title: [Amazon ECR],
+  subtitle: [AWS CLI],
+)[
+  Ahora que tenemos la imagen Docker en nuestro equipo, necesitamos subirla a la nube para que nuestro servidor pueda descargarla y ejecutarla. En AWS, esto se hace a través del *Elastic Container Registry (ECR)*.
+
+  Si aún no tienes una cuenta en AWS, puedes crear una de forma gratuita aquí:
+
+  - AWS Educate: #link("https://aws.amazon.com/education/awseducate/")[https://aws.amazon.com/education/awseducate/]
+  - AWS Free Tier: #link("https://aws.amazon.com/free/")[https://aws.amazon.com/free/]
+
+  Existen dos formas de crear y gestionar un registro en ECR: manualmente desde la consola de AWS o mediante código.
 
   #linear.two-columns(
     split: 50%,
     [
-      *Forma manual (problemas):*
-      - No es repetible
-      - No hay historial de cambios
+      *Manual (desventajas):*
+      - No repetible
+      - Sin historial de cambios
       - Difícil de compartir con el equipo
-      - Imposible de revisar en code review
+      - No permite revisiones en code review
     ],
     [
-      *Con código (IaC):* #h(0.3em) #linear.badge[Recomendado]
+      *Con código #linear.badge[Recomendado]:*
       - Repetible
       - Versionable con git
-      - Revisable en code reviews
-      - El código es la documentación
+      - Revisable en code review
+      - El código sirve como documentación
     ],
   )
 
-  Hoy vamos a hacerlo con código desde el principio.
+  Hoy lo haremos directamente con código. Primero, asegúrate de tener instalado *AWS CLI* en tu máquina:
+  #figure(
+    image("img/awscli.png", width: 63%),
+  )
+
+  Verifica la instalación ejecutando:
+
+  ```bash
+  aws --version
+  ```
 ]
 
 #linear.slide(
   title: [Amazon ECR],
-  subtitle: [Subir nuestra imagen a la nube],
+  subtitle: [Iniciar sesión en AWS CLI],
 )[
-  ECR (Elastic Container Registry) es el lugar donde AWS hospeda tus imágenes Docker. Piénsalo como GitHub pero para imágenes Docker.
+  Antes de poder subir nuestra imagen Docker a ECR, necesitamos iniciar sesión en AWS desde la terminal usando *AWS CLI*.
 
-  1. *Crear el registry:*
+  1. Configura tus credenciales de AWS:
+
     #block(width: 90%)[
       ```bash
-      aws ecr create-repository --repository-name django-ec2-complete
-      # Esto te da un URI, como: 620457613573.dkr.ecr.us-east-1.amazonaws.com/django-ec2-complete
+      aws configure
       ```
     ]
 
-  2. *Login, tag y push:*
+    Este comando te pedirá tanto tu AWS Access Key ID como tu AWS Secret Access Key. Para generarlo, dirígete al #link("https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-2#/home")[IAM dashboard.]
+
+  2. Verifica que la configuración fue correcta:
+
     #block(width: 90%)[
       ```bash
-      # Login a ECR (reemplaza <TU_URI>)
-      docker login -u AWS -p $(aws ecr get-login-password --region us-east-1) <TU_URI>.dkr.ecr.us-east-1.amazonaws.com
-
-      # Tag la imagen
-      docker tag django-ec2-complete:latest <TU_URI>/django-ec2-complete:latest
-
-      # Push
-      docker push <TU_URI>/django-ec2-complete:latest
+      aws sts get-caller-identity
+      # Esto mostrará tu ID de usuario, cuenta y ARN
       ```
     ]
+
+    #figure(
+      image("img/aws-cred.png", width: 80%),
+    )
 ]
+
+#linear.slide(
+  title: [Amazon ECR],
+  subtitle: [Subir nuestra imagen Docker],
+)[
+  *Elastic Container Registry (ECR)* es un servicio de AWS para hospedar tus imágenes Docker. Es como GitHub, pero para contenedores.
+
+  1. Crear el repositorio
+
+  #block(width: 90%)[
+
+    ```bash
+    aws ecr create-repository --repository-name django-ec2-complete
+    # Esto devuelve un URI, por ejemplo:
+    # 620457613573.dkr.ecr.us-east-1.amazonaws.com/django-ec2-complete
+    ```
+
+  ]
+
+  2. Login, tag y push
+
+  #block(width: 90%)[
+
+    ```bash
+    # Login a ECR (reemplaza <TU_URI>)
+    docker login -u AWS -p $(aws ecr get-login-password --region us-east-1) <TU_URI>.dkr.ecr.us-east-1.amazonaws.com
+
+    # Etiquetar la imagen
+    docker tag django-ec2-complete:latest <TU_URI>/django-ec2-complete:latest
+
+    # Subir la imagen
+    docker push <TU_URI>/django-ec2-complete:latest
+    ```
+  ]
+]
+
 
 #linear.section-slide[Paso 4: Infraestructura con Terraform]
 

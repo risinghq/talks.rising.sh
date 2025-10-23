@@ -47,7 +47,7 @@
       {
         set text(
           font: fonts.mono,
-          size: 0.85em,
+          size: 1em,
           fill: colors.code-text,
           weight: 400,
         )
@@ -64,7 +64,7 @@
       baseline: 10%,
       text(
         font: fonts.mono,
-        size: 0.9em,
+        size: 1em,
         fill: colors.gray-700,
         weight: 500,
         it,
@@ -79,13 +79,13 @@
     spacing: 0.85em,
   )
   show list.item: it => {
-    set text(fill: colors.gray-700, size: sizes.body)
+    set text(/*fill: colors.gray-700,*/ size: sizes.body)
     it
   }
 
-  set enum(indent: 0em, body-indent: 1em, spacing: 0.85em)
+  set enum(indent: 0em, body-indent: 1em, spacing: 1.5em)
   show enum.item: it => {
-    set text(fill: colors.gray-700, size: sizes.body)
+    set text(/*fill: colors.gray-700,*/ size: sizes.body)
     it
   }
 

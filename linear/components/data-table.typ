@@ -1,17 +1,29 @@
 #import "../config.typ": colors, sizes
 
-#let data-table(headers: (), rows: (), striped: true, compact: false) = {
+#let data-table(
+  headers: (),
+  rows: (),
+  column-widths: auto,
+  striped: true,
+  compact: false,
+) = {
   let cell-padding = if compact { (x: 0em, y: 0.5em) } else {
     (x: 0em, y: 0.75em)
   }
   let header-size = if compact { sizes.small } else { sizes.body }
   let body-size = if compact { sizes.small } else { sizes.body }
 
+  let cols = if column-widths == auto {
+    headers.len()
+  } else {
+    column-widths
+  }
+
   block(
     width: 100%,
     {
       table(
-        columns: headers.len(),
+        columns: cols,
         inset: 0pt,
         stroke: none,
         // Header row
