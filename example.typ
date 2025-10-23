@@ -11,7 +11,7 @@
 )
 
 // Title slide
-#linear.title-slide(
+#(linear.title-slide)(
   title: [Desplegando Django en AWS],
   subtitle: [El camino correcto: Docker, Terraform y PostgreSQL],
   author: [Cloud Engineering Workshop],
@@ -19,10 +19,10 @@
 )
 
 // Table of contents
-#linear.outline-slide(depth: 2)
+#(linear.outline-slide)(depth: 2)
 
 // Regular slide
-#linear.slide(
+#(linear.slide)(
   title: [El resultado final],
   subtitle: [Lo que vamos a construir hoy],
 )[
@@ -35,8 +35,8 @@
   - Dominio personalizado con HTTPS
 
   #v(1em)
-  
-  #linear.callout(
+
+  #(linear.callout)(
     type: "info",
     title: [Tip importante],
   )[
@@ -45,12 +45,12 @@
 ]
 
 // Slide with two columns
-#linear.slide(title: [Por qué hacerlo bien])[
-  #linear.two-columns(
+#(linear.slide)(title: [Por qué hacerlo bien])[
+  #(linear.two-columns)(
     split: 45%,
     [
       = Manual vs automatizado
-      
+
       *Forma manual:*
       - Click en la consola
       - Sin historial
@@ -64,42 +64,42 @@
       - Repetible
       - Revisable
       - Documentado
-      
+
       #v(1em)
-      #linear.badge(type: "success")[Recomendado]
+      #(linear.badge)(type: "success")[Recomendado]
     ]
   )
 ]
 
 // Slide with cards
-#linear.slide(title: [Componentes necesarios])[
+#(linear.slide)(title: [Componentes necesarios])[
   #grid(
     columns: (1fr, 1fr),
     column-gutter: 1em,
     row-gutter: 1em,
-    
-    linear.card(
+
+    (linear.card)(
       title: [Docker],
       footer: [Paso 2],
     )[
       Empaqueta tu aplicación con todas sus dependencias en una imagen portable.
     ],
-    
-    linear.card(
+
+    (linear.card)(
       title: [Amazon ECR],
       footer: [Paso 3],
     )[
       Registry para hospedar tus imágenes Docker en AWS.
     ],
-    
-    linear.card(
+
+    (linear.card)(
       title: [Terraform],
       footer: [Paso 4],
     )[
       Infrastructure as Code para definir recursos de forma declarativa.
     ],
-    
-    linear.card(
+
+    (linear.card)(
       title: [PostgreSQL RDS],
       footer: [Paso 5],
     )[
@@ -109,7 +109,7 @@
 ]
 
 // Slide with code
-#linear.slide(title: [Crear el proyecto Django])[
+#(linear.slide)(title: [Crear el proyecto Django])[
   Primero, instalamos Django y creamos el proyecto:
 
   ```bash
@@ -129,7 +129,7 @@
 ]
 
 // Slide with inline code and callouts
-#linear.slide(title: [Dockerfile])[
+#(linear.slide)(title: [Dockerfile])[
   Creamos un `Dockerfile` para empaquetar nuestra aplicación:
 
   ```dockerfile
@@ -147,16 +147,16 @@
 
   #v(0.5em)
 
-  #linear.callout(type: "warning", title: [Importante])[
+  #(linear.callout)(type: "warning", title: [Importante])[
     Usamos `slim-bullseye` para reducir el tamaño de la imagen y mejorar la seguridad.
   ]
 ]
 
 // Slide with mixed content
-#linear.slide(title: [VPC y networking])[
+#(linear.slide)(title: [VPC y networking])[
   Una VPC (Virtual Private Cloud) es tu red privada en AWS.
 
-  #linear.two-columns(
+  #(linear.two-columns)(
     split: 60%,
     [
       ```hcl
@@ -172,22 +172,22 @@
     ],
     [
       *Componentes clave:*
-      
-      - VPC #linear.badge[Red base]
-      - Internet Gateway #linear.badge[Acceso web]
-      - Subnets #linear.badge[Divisiones]
-      - Security Groups #linear.badge[Firewall]
+
+      - VPC #(linear.badge)[Red base]
+      - Internet Gateway #(linear.badge)[Acceso web]
+      - Subnets #(linear.badge)[Divisiones]
+      - Security Groups #(linear.badge)[Firewall]
     ]
   )
 ]
 
 // Focus slide
-#linear.focus-slide[
+#(linear.focus-slide)[
   Infrastructure as Code
 ]
 
 // Slide with success message
-#linear.slide(title: [Aplicar cambios])[
+#(linear.slide)(title: [Aplicar cambios])[
   Una vez definida tu infraestructura en Terraform:
 
   ```bash
@@ -199,18 +199,18 @@
 
   #v(1em)
 
-  #linear.callout(type: "success", title: [Listo])[
-    Después de unos minutos, tu infraestructura estará desplegada. 
-    
+  #(linear.callout)(type: "success", title: [Listo])[
+    Después de unos minutos, tu infraestructura estará desplegada.
+
     Ve a la consola de AWS → EC2 y verás tu servidor corriendo.
   ]
 ]
 
 // Slide with danger callout
-#linear.slide(title: [Seguridad])[
+#(linear.slide)(title: [Seguridad])[
   Algunas consideraciones importantes:
 
-  #linear.callout(type: "danger", title: [Nunca hagas esto])[
+  #(linear.callout)(type: "danger", title: [Nunca hagas esto])[
     - No pongas credenciales en el código
     - No uses `DEBUG = True` en producción
     - No expongas todos los puertos al internet
@@ -227,42 +227,42 @@
 ]
 
 // Final slide with cards
-#linear.slide(title: [Próximos pasos])[
+#(linear.slide)(title: [Próximos pasos])[
   #grid(
     columns: (1fr, 1fr, 1fr),
     column-gutter: 1em,
-    
-    linear.card(title: [Optimizar])[
+
+    (linear.card)(title: [Optimizar])[
       Reduce el tamaño de la imagen Docker con `.dockerignore`
     ],
-    
-    linear.card(title: [CI/CD])[
+
+    (linear.card)(title: [CI/CD])[
       Automatiza deploys con GitHub Actions
     ],
-    
-    linear.card(title: [Monitoreo])[
+
+    (linear.card)(title: [Monitoreo])[
       Implementa logs con CloudWatch
     ],
   )
-  
+
   #v(1em)
-  
-  La mejor forma de aprender es construyendo. #linear.badge(type: "accent")[Empieza hoy]
+
+  La mejor forma de aprender es construyendo. #(linear.badge)(type: "accent")[Empieza hoy]
 ]
 
 // Thank you slide
-#linear.focus-slide[
+#(linear.focus-slide)[
   ¡Gracias!
 ]
 
 // Q&A slide
-#linear.slide(footer: none)[
+#(linear.slide)(footer: none)[
   #align(center + horizon)[
     #text(size: 48pt, weight: 600)[¿Preguntas?]
-    
+
     #v(2em)
-    
-    #text(size: 20pt, fill: linear.colors.muted-fg)[
+
+    #text(size: 20pt, fill: (linear.colors.muted-fg))[
       Documentación y recursos disponibles en el repositorio
     ]
   ]
