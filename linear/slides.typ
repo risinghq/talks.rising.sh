@@ -68,6 +68,31 @@
   }
 
   page({
+    /*
+        place(left + horizon, dx: -1.5em, {
+          line(
+            start: (0pt, 0%),
+            end: (0pt, 130%),
+            stroke: (
+              paint: colors.gray-200,
+              thickness: 0.5pt,
+              dash: (4pt, 4.5pt),
+            ),
+          )
+        })
+
+        place(right + horizon, dx: 1.5em, {
+          line(
+            start: (0pt, 0%),
+            end: (0pt, 130%),
+            stroke: (
+              paint: colors.gray-200,
+              thickness: 0.5pt,
+              dash: (4pt, 4.5pt),
+            ),
+          )
+        })
+    */
     if title != none {
       block(
         width: 100%,
