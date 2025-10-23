@@ -1,4 +1,4 @@
-#import "linear/lib.typ" as linear
+#import "linear/main.typ" as linear
 
 #show: linear.theme.with(aspect-ratio: "16-9")
 

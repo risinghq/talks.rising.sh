@@ -10,16 +10,6 @@
 )
 #import "layouts.typ": grid-layout, three-columns, two-columns
 
-// Re-export configuration
-#let colors = colors
-#let fonts = fonts
-#let sizes = sizes
-#let spacing = spacing
-#let radius = radius
-
-// Re-export theme
-#let theme = theme
-
 // Re-export slide types
 #let blank-slide = blank-slide
 #let focus-slide = focus-slide
