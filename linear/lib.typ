@@ -1,33 +1,12 @@
-#import "config.typ": colors, fonts, sizes, spacing, radius
+#import "config.typ": colors, fonts, radius, sizes, spacing
 #import "theme.typ": theme
 #import "slides.typ": (
-  blank-slide,
-  focus-slide,
-  image-slide,
-  outline-slide,
-  qa-slide,
-  section-slide,
-  slide,
-  split-slide,
-  thank-you-slide,
-  title-slide,
+  blank-slide, focus-slide, image-slide, outline-slide, qa-slide, section-slide,
+  slide, split-slide, thank-you-slide, title-slide,
 )
 #import "components.typ": (
-  badge,
-  button,
-  callout,
-  card,
-  code-block,
-  divider,
-  feature,
-  highlight,
-  icon-box,
-  metric,
-  progress,
-  quote,
-  status,
-  step,
-  tag,
+  badge, button, callout, card, code-block, divider, feature, highlight,
+  icon-box, metric, progress, quote, status, step, tag,
 )
 #import "layouts.typ": grid-layout, three-columns, two-columns
 

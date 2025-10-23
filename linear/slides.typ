@@ -1,9 +1,9 @@
-#import "config.typ": colors, fonts, sizes, spacing, radius
+#import "config.typ": colors, fonts, radius, sizes, spacing
 
 // State to track slide titles for outline
 #let slide-titles = state("slide-titles", ())
 
-// Title slide - opening slide with branding
+// Title slide - opening slide with minimal branding
 #let title-slide(
   title: none,
   subtitle: none,
@@ -33,7 +33,7 @@
     )
 
     if subtitle != none {
-      v(1.2em)
+      v(1em)
       block(
         width: 90%,
         {
@@ -47,7 +47,7 @@
       )
     }
 
-    v(3em)
+    v(2.5em)
 
     if author != none or date != none {
       block(
@@ -55,7 +55,7 @@
         {
           set text(size: sizes.small, fill: colors.muted, weight: 400)
           if author != none {
-            text(weight: 500, fill: colors.fg)[#author]
+            text(weight: 500, fill: colors.gray-600)[#author]
           }
           if author != none and date != none [ \ ]
           if date != none { date }
@@ -65,7 +65,7 @@
   })
 }
 
-// Standard content slide
+// Standard content slide - ultra minimal like Linear
 #let slide(
   title: none,
   subtitle: none,
@@ -82,17 +82,22 @@
   }
 
   page({
-    // Header section
+    // Header section - clean and minimal
     if title != none {
       block(
         width: 100%,
-        inset: (bottom: 0.3em),
+        inset: (bottom: 0.2em),
         {
           set align(header-align)
           text(size: sizes.h1, weight: 600, fill: colors.fg, title)
           if subtitle != none {
-            v(0.4em)
-            text(size: sizes.small, weight: 400, fill: colors.gray-500, subtitle)
+            v(0.3em)
+            text(
+              size: sizes.small,
+              weight: 400,
+              fill: colors.gray-500,
+              subtitle,
+            )
           }
         },
       )
@@ -106,33 +111,33 @@
         // Override heading styles within slide content
         show heading.where(level: 1): it => {
           text(size: sizes.h2, weight: 600, fill: colors.fg, it.body)
-          v(0.4em)
+          v(0.3em)
         }
 
         show heading.where(level: 2): it => {
           text(size: sizes.h3, weight: 600, fill: colors.fg, it.body)
-          v(0.3em)
+          v(0.25em)
         }
 
         show heading.where(level: 3): it => {
           text(size: sizes.body, weight: 600, fill: colors.fg, it.body)
-          v(0.3em)
+          v(0.25em)
         }
 
         body
-      }
+      },
     )
 
-    // Footer section
+    // Footer section - subtle
     if footer != auto and footer != none {
       v(1fr)
       block(
         width: 100%,
-        inset: (top: spacing.md),
-        stroke: (top: 1pt + colors.gray-200),
+        inset: (top: spacing.sm),
+        stroke: (top: 0.75pt + colors.gray-200),
         {
           v(spacing.sm)
-          set text(size: sizes.tiny, fill: colors.gray-500, weight: 400)
+          set text(size: sizes.tiny, fill: colors.gray-400, weight: 400)
           footer
         },
       )
@@ -140,7 +145,7 @@
   })
 }
 
-// Focus slide for key messages
+// Focus slide for key messages - minimal emphasis
 #let focus-slide(
   body,
   background: colors.bg,
@@ -154,32 +159,40 @@
   })
 }
 
-// Outline/table of contents slide
+// Outline/table of contents slide - clean list
 #let outline-slide(
   title: [Agenda],
 ) = {
   page({
     block(
       width: 100%,
-      inset: (bottom: 0.8em),
+      inset: (bottom: 0.6em),
       {
         text(size: sizes.h2, weight: 600, fill: colors.fg, title)
       },
     )
     v(spacing.lg)
 
-    set text(size: sizes.body)
-    set par(leading: 0.8em)
+    set text(size: sizes.body, fill: colors.fg)
+    set par(leading: 0.7em)
 
     // Display collected slide titles
     context {
       let titles = slide-titles.final()
       if titles.len() > 0 {
         for (i, slide-title) in titles.enumerate() {
-          [#(i + 1). #slide-title]
+          grid(
+            columns: (auto, 1fr),
+            column-gutter: 0.8em,
+            text(
+              size: sizes.small,
+              fill: colors.gray-400,
+              weight: 500,
+            )[#(i + 1).],
+            text(weight: 400)[#slide-title],
+          )
           if i < titles.len() - 1 {
-            linebreak()
-            v(0.4em)
+            v(0.5em)
           }
         }
       } else {
@@ -189,7 +202,7 @@
   })
 }
 
-// Section divider slide
+// Section divider slide - minimal with accent line
 #let section-slide(
   title,
   subtitle: none,
@@ -201,10 +214,10 @@
     block(
       width: 100%,
       {
-        // Accent line
+        // Accent line - thin and elegant
         line(
-          length: 60pt,
-          stroke: 4pt + accent-color,
+          length: 50pt,
+          stroke: 3pt + accent-color,
         )
         v(spacing.lg)
 
@@ -244,19 +257,19 @@
       {
         set align(center + horizon)
         image
-      }
+      },
     )
 
     if caption != none {
       v(spacing.md)
-      set text(size: sizes.small, fill: colors.muted)
+      set text(size: sizes.small, fill: colors.muted, weight: 400)
       set align(center)
       caption
     }
   })
 }
 
-// Side-by-side slide (50/50 split with visual separator)
+// Side-by-side slide (customizable split with minimal gap)
 #let split-slide(
   left,
   right,
@@ -266,7 +279,7 @@
   let header-content = if title != none {
     block(
       width: 100%,
-      inset: (bottom: 0.8em),
+      inset: (bottom: 0.6em),
       {
         text(size: sizes.h2, weight: 600, fill: colors.fg, title)
       },
@@ -279,14 +292,13 @@
 
     grid(
       columns: (split, 1fr),
-      column-gutter: spacing.xxl,
-      left,
-      right,
+      column-gutter: spacing.xl,
+      left, right,
     )
   })
 }
 
-// Thank you / closing slide
+// Thank you / closing slide - clean and minimal
 #let thank-you-slide(
   message: [Thank you!],
   contact: none,
@@ -304,7 +316,7 @@
     )
 
     if contact != none {
-      v(spacing.xxl)
+      v(spacing.xl)
       text(
         size: sizes.body,
         weight: 400,
@@ -319,7 +331,7 @@
   page(body)
 }
 
-// Q&A / Questions slide
+// Q&A / Questions slide - minimal and inviting
 #let qa-slide(
   question: [Questions?],
   subtitle: [Feel free to reach out],
@@ -335,7 +347,7 @@
     )
 
     if subtitle != none {
-      v(spacing.xl)
+      v(spacing.lg)
       text(
         size: sizes.body,
         weight: 400,
@@ -343,5 +355,68 @@
         subtitle,
       )
     }
+  })
+}
+
+// Comparison slide - side-by-side comparison with headers
+#let comparison-slide(
+  title: none,
+  left-title,
+  left-content,
+  right-title,
+  right-content,
+) = {
+  page({
+    if title != none {
+      block(
+        width: 100%,
+        inset: (bottom: 0.6em),
+        {
+          text(size: sizes.h2, weight: 600, fill: colors.fg, title)
+        },
+      )
+      v(spacing.lg)
+    }
+
+    grid(
+      columns: (1fr, 1fr),
+      column-gutter: spacing.xl,
+      // Left column
+      block({
+        text(size: sizes.h3, weight: 600, fill: colors.fg)[#left-title]
+        v(spacing.md)
+        left-content
+      }),
+      // Right column
+      block({
+        text(size: sizes.h3, weight: 600, fill: colors.fg)[#right-title]
+        v(spacing.md)
+        right-content
+      }),
+    )
+  })
+}
+
+// List slide - formatted list with optional title
+#let list-slide(
+  title: none,
+  items,
+) = {
+  page({
+    if title != none {
+      block(
+        width: 100%,
+        inset: (bottom: 0.6em),
+        {
+          text(size: sizes.h2, weight: 600, fill: colors.fg, title)
+        },
+      )
+      v(spacing.lg)
+    }
+
+    set text(size: sizes.body, fill: colors.fg)
+    set list(marker: ([•], [◦], [▸]), spacing: 0.6em)
+
+    items
   })
 }

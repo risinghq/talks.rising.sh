@@ -1,4 +1,4 @@
-#import "config.typ": colors, fonts, sizes, spacing, radius
+#import "config.typ": colors, fonts, radius, sizes, spacing
 
 #let theme(
   aspect-ratio: "16-9",
@@ -18,7 +18,7 @@
     fallback: true,
   )
 
-  // Heading styles - Linear's clean hierarchy
+  // Heading styles - Linear's clean, minimal hierarchy
   show heading.where(level: 1): it => {
     set text(
       size: sizes.h1,
@@ -28,7 +28,7 @@
     block(
       above: 1.5em,
       below: 1em,
-      it
+      it,
     )
   }
 
@@ -41,7 +41,7 @@
     block(
       above: 1.2em,
       below: 0.8em,
-      it
+      it,
     )
   }
 
@@ -54,7 +54,7 @@
     block(
       above: 1em,
       below: 0.6em,
-      it
+      it,
     )
   }
 
@@ -67,7 +67,7 @@
     block(
       above: 0.8em,
       below: 0.5em,
-      it
+      it,
     )
   }
 
@@ -76,21 +76,21 @@
     text(fill: colors.accent, weight: 500, it)
   }
 
-  // Code block styling - dark theme inspired by Linear
+  // Code block styling - LIGHT theme like Linear's documentation
   show raw.where(block: true): it => {
     set par(leading: 0.65em)
     block(
       width: 100%,
-      fill: colors.nordic-gray,
-      stroke: none,
+      fill: colors.code-bg,
+      stroke: 0.75pt + colors.code-border,
       radius: radius.md,
       inset: (x: 1.5em, y: 1.2em),
       breakable: false,
       {
         set text(
           font: fonts.mono,
-          size: 0.8em,
-          fill: colors.mercury-white,
+          size: 0.78em,
+          fill: colors.code-text,
           weight: 400,
         )
         it
@@ -98,7 +98,7 @@
     )
   }
 
-  // Inline code styling
+  // Inline code styling - light gray background
   show raw.where(block: false): it => {
     box(
       fill: colors.gray-100,
@@ -150,14 +150,13 @@
   show strong: set text(weight: 600, fill: colors.fg)
   show emph: set text(style: "italic", fill: colors.gray-600)
 
-  // Table styling
+  // Table styling - minimal borders
   show table: it => {
     set text(size: sizes.small)
     block(
       width: 100%,
       stroke: none,
-      radius: radius.md,
-      it
+      it,
     )
   }
 
@@ -167,7 +166,7 @@
     it
   }
 
-  // Horizontal rule
+  // Horizontal rule - subtle
   set line(stroke: 1pt + colors.gray-200)
 
   // Terms (definition lists)
