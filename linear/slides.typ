@@ -1,5 +1,8 @@
 #import "config.typ": colors, fonts, sizes, spacing, radius
 
+// State to track slide titles for outline
+#let slide-titles = state("slide-titles", ())
+
 // Title slide - opening slide with branding
 #let title-slide(
   title: none,
@@ -70,6 +73,14 @@
   header-align: left,
   body,
 ) = {
+  // Register this slide's title for the outline
+  if title != none {
+    slide-titles.update(t => {
+      t.push(title)
+      t
+    })
+  }
+
   page({
     // Header section
     if title != none {
@@ -146,7 +157,6 @@
 // Outline/table of contents slide
 #let outline-slide(
   title: [Agenda],
-  depth: 2,
 ) = {
   page({
     block(
@@ -158,14 +168,24 @@
     )
     v(spacing.lg)
 
-    set text(size: sizes.small)
+    set text(size: sizes.body)
     set par(leading: 0.8em)
 
-    outline(
-      title: none,
-      depth: depth,
-      indent: auto,
-    )
+    // Display collected slide titles
+    context {
+      let titles = slide-titles.final()
+      if titles.len() > 0 {
+        for (i, slide-title) in titles.enumerate() {
+          [#(i + 1). #slide-title]
+          if i < titles.len() - 1 {
+            linebreak()
+            v(0.4em)
+          }
+        }
+      } else {
+        text(fill: colors.gray-400)[No slides with titles found]
+      }
+    }
   })
 }
 

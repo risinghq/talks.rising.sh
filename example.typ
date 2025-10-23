@@ -9,7 +9,7 @@
   date: datetime.today().display(),
 )
 
-#linear.outline-slide(depth: 2)
+#linear.outline-slide()
 
 #linear.slide(
   title: [El resultado final],
