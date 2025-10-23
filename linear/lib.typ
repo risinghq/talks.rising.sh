@@ -5,8 +5,8 @@
   slide, split-slide, thank-you-slide, title-slide,
 )
 #import "components.typ": (
-  badge, button, callout, card, divider, feature, highlight, icon-box, metric,
-  progress, quote, status,
+  badge, button, callout, card, data-table, divider, feature, highlight,
+  icon-box, metric, progress, quote, status,
 )
 #import "layouts.typ": grid-layout, three-columns, two-columns
 

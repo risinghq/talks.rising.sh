@@ -67,6 +67,46 @@
   )
 ]
 
+#linear.slide(title: [API Request Fields])[
+  Estructura de datos para las solicitudes en Linear:
+
+  #linear.data-table(
+    headers: ([Field], [Type], [Description]),
+    rows: (
+      (
+        [`customerId`],
+        [`uuid`],
+        [The `id` of the Customer in Linear this request is associated with. Can be `undefined` if the request is not attached to a Customer.],
+      ),
+      (
+        [`issueId`],
+        [`uuid`],
+        [The `id` of the Issue this request is associated with.],
+      ),
+      (
+        [`attachmentId`],
+        [`uuid`],
+        [The `id` of the Attachment this request is associated with. All requests with a source URL are backed by an Attachment.],
+      ),
+      (
+        [`priority`],
+        [`number`],
+        [Whether the customer request is important or not. `0` = Not important, `1` = Important.],
+      ),
+      (
+        [`body`],
+        [`string`],
+        [Optional content for the request, in markdown format.],
+      ),
+      (
+        [`creatorId`],
+        [`uuid`],
+        [The `id` of the User in Linear who created the request.],
+      ),
+    ),
+  )
+]
+
 #linear.slide(title: [Crear el proyecto Django])[
   Primero, instalamos Django y creamos el proyecto:
 
