@@ -75,22 +75,38 @@
   2. También puedes instalar cada herramienta *manualmente* por separado desde sus páginas oficiales: #link("https://www.python.org/downloads/")[python.org], #link("https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")[aws.amazon.com/cli], #link("https://cli.github.com/")[cli.github.com]
 ]
 
-#linear.section-slide[Paso 1: Proyecto Django]
+#linear.section-slide[Proyecto \#0: Django]
 
 #linear.slide(
-  title: [Proyecto Django],
+  title: [Django],
   subtitle: [Configuración inicial],
 )[
-  Primero, el proyecto y el entorno virtual:
+  Vamos a empezar con la plantilla por defecto que viene con Django. Estaré usando uv:
   #block(width: 80%)[
     ```bash
-    python3.12 -m pip install django
-    python3.12 -m django startproject django_ec2_complete
-    cd django_ec2_complete
+    mkdir ejemplo && cd ejemplo
+    uv init --bare
+    uv add django
+    uv run python -m django startproject proyecto1
+    cd proyecto1
 
-    python3.12 -m venv venv
+    uv add django gunicorn psycopg2-binary
+    ```
+  ]
+
+  Si estás usando python:
+  #block(width: 80%)[
+    ```bash
+    mkdir ejemplo && cd ejemplo
+    python -m pip install django
+    python -m django startproject proyecto1
+    cd proyecto1
+
+    # Luego, tienes que crear el entorno virtual (uv lo maneja por nosotros en el caso anterior)
+    python -m venv venv
     source venv/bin/activate
-    pip install --upgrade pip
+
+    python -m pip install django gunicorn psycopg2-binary
     ```
   ]
 
@@ -107,15 +123,15 @@
 ]
 
 #linear.slide(
-  title: [Proyecto Django],
+  title: [Django],
   subtitle: [Ejecutar localmente],
 )[
   Para verificar que todo funciona:
 
   #block(width: 80%)[
     ```bash
-    python manage.py migrate
-    python manage.py runserver
+    uv run python manage.py migrate
+    uv run python manage.py runserver
     ```
   ]
 
