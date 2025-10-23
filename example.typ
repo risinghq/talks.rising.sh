@@ -74,7 +74,7 @@
   2. También puedes instalar cada herramienta *manualmente* por separado desde sus páginas oficiales: #link("https://www.python.org/downloads/")[python.org], #link("https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")[aws.amazon.com/cli], #link("https://cli.github.com/")[cli.github.com]
 ]
 
-#linear.section-slide[Proyecto \#0: Django]
+#linear.section-slide[Proyecto \#0: Django (boilerplate)]
 
 #linear.slide(
   title: [Django],
