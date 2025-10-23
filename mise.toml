@@ -34,6 +34,16 @@ description = "Development mode with file watching"
 alias = "d"
 run = "typst watch example.typ --open"
 
+[tasks.pkg-install]
+description = "Install linear package to local Typst packages"
+alias = "install"
+run = "pwsh scripts/install-local-pkg.ps1"
+
+[tasks.pkg-uninstall]
+description = "Uninstall linear package from local Typst packages"
+alias = "uninstall"
+run = "pwsh scripts/uninstall-local-pkg.ps1"
+
 # CI/CD tasks
 [tasks.ci]
 description = "Run continuous integration checks"

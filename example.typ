@@ -1,19 +1,17 @@
-#import "linear/lib.typ": focus-slide, outline-slide, slide, theme, title-slide
-#import "linear/lib.typ": badge, callout, card, grid-layout, two-columns
-#import "linear/lib.typ": colors
+#import "@local/linear:0.1.0": linear
 
-#show: theme.with(aspect-ratio: "16-9")
+#show: linear.theme.with(aspect-ratio: "16-9")
 
-#title-slide(
+#linear.title-slide(
   title: [Deploy en la nube... ☁️],
   subtitle: [AWS (EC2, Cloudwatch) + Django + Docker + nginx],
   author: [Cloud Engineering Workshop],
   date: datetime.today().display(),
 )
 
-#outline-slide(depth: 2)
+#linear.outline-slide(depth: 2)
 
-#slide(
+#linear.slide(
   title: [El resultado final],
   subtitle: [Lo que vamos a construir hoy],
 )[
@@ -27,17 +25,17 @@
 
   #v(1em)
 
-  #callout(title: [Tip importante])[
+  #linear.callout(title: [Tip importante])[
     Todo esto lo haremos usando el tier gratuito de AWS.
   ]
 ]
 
-#slide(title: [Por qué hacerlo bien])[
+#linear.slide(title: [Por qué hacerlo bien])[
   #text(size: 24pt, weight: 600)[Manual vs automatizado]
 
   #v(1em)
 
-  #two-columns(
+  #linear.two-columns(
     split: 50%,
     [
       *Forma manual:*
@@ -47,7 +45,7 @@
       - Difícil de revisar
     ],
     [
-      *Con código:* #h(0.3em) #badge[Recomendado]
+      *Con código:* #h(0.3em) #linear.badge[Recomendado]
       - Versionado en git
       - Repetible
       - Revisable
@@ -56,33 +54,33 @@
   )
 ]
 
-#slide(title: [Componentes necesarios])[
-  #grid-layout(
+#linear.slide(title: [Componentes necesarios])[
+  #linear.grid-layout(
     columns: 2,
     gutter: 1em,
 
-    card(
+    linear.card(
       title: [Docker],
       footer: [Paso 2],
     )[
       Empaqueta tu aplicación con todas sus dependencias en una imagen portable.
     ],
 
-    card(
+    linear.card(
       title: [Amazon ECR],
       footer: [Paso 3],
     )[
       Registry para hospedar tus imágenes Docker en AWS.
     ],
 
-    card(
+    linear.card(
       title: [Terraform],
       footer: [Paso 4],
     )[
       Infrastructure as Code para definir recursos de forma declarativa.
     ],
 
-    card(
+    linear.card(
       title: [PostgreSQL RDS],
       footer: [Paso 5],
     )[
@@ -91,7 +89,7 @@
   )
 ]
 
-#slide(title: [Crear el proyecto Django])[
+#linear.slide(title: [Crear el proyecto Django])[
   Primero, instalamos Django y creamos el proyecto:
 
   ```bash
@@ -110,7 +108,7 @@
   ```
 ]
 
-#slide(title: [Dockerfile])[
+#linear.slide(title: [Dockerfile])[
   Creamos un `Dockerfile` para empaquetar nuestra aplicación:
 
   ```dockerfile
@@ -127,15 +125,15 @@
 
   #v(0.5em)
 
-  #callout(title: [Importante])[
+  #linear.callout(title: [Importante])[
     Usamos `slim-bullseye` para reducir el tamaño de la imagen y mejorar la seguridad.
   ]
 ]
 
-#slide(title: [VPC y networking])[
+#linear.slide(title: [VPC y networking])[
   Una VPC (Virtual Private Cloud) es tu red privada en AWS.
 
-  #two-columns(
+  #linear.two-columns(
     split: 60%,
     [
       ```hcl
@@ -152,19 +150,19 @@
     [
       *Componentes clave:*
 
-      - VPC #badge[Red base]
-      - Internet Gateway #badge[Acceso web]
-      - Subnets #badge[Divisiones]
-      - Security Groups #badge[Firewall]
+      - VPC #linear.badge[Red base]
+      - Internet Gateway #linear.badge[Acceso web]
+      - Subnets #linear.badge[Divisiones]
+      - Security Groups #linear.badge[Firewall]
     ],
   )
 ]
 
-#focus-slide[
+#linear.focus-slide[
   Infrastructure as Code
 ]
 
-#slide(title: [Aplicar cambios])[
+#linear.slide(title: [Aplicar cambios])[
   Una vez definida tu infraestructura en Terraform:
 
   ```bash
@@ -176,17 +174,17 @@
 
   #v(1em)
 
-  #callout(title: [Listo])[
+  #linear.callout(title: [Listo])[
     Después de unos minutos, tu infraestructura estará desplegada.
 
     Ve a la consola de AWS → EC2 y verás tu servidor corriendo.
   ]
 ]
 
-#slide(title: [Seguridad])[
+#linear.slide(title: [Seguridad])[
   Algunas consideraciones importantes:
 
-  #callout(title: [Nunca hagas esto])[
+  #linear.callout(title: [Nunca hagas esto])[
     - No pongas credenciales en el código
     - No uses `DEBUG = True` en producción
     - No expongas todos los puertos al internet
@@ -202,40 +200,40 @@
   ```
 ]
 
-#slide(title: [Próximos pasos])[
-  #grid-layout(
+#linear.slide(title: [Próximos pasos])[
+  #linear.grid-layout(
     columns: 3,
     gutter: 1em,
 
-    card(title: [Optimizar])[
+    linear.card(title: [Optimizar])[
       Reduce el tamaño de la imagen Docker con `.dockerignore`
     ],
 
-    card(title: [CI/CD])[
+    linear.card(title: [CI/CD])[
       Automatiza deploys con GitHub Actions
     ],
 
-    card(title: [Monitoreo])[
+    linear.card(title: [Monitoreo])[
       Implementa logs con CloudWatch
     ],
   )
 
   #v(1em)
 
-  La mejor forma de aprender es construyendo. #badge[Empieza hoy]
+  La mejor forma de aprender es construyendo. #linear.badge[Empieza hoy]
 ]
 
-#focus-slide[
+#linear.focus-slide[
   ¡Gracias!
 ]
 
-#slide(footer: none)[
+#linear.slide(footer: none)[
   #align(center + horizon)[
     #text(size: 40pt, weight: 600)[¿Preguntas?]
 
     #v(2em)
 
-    #text(size: 18pt, fill: colors.muted)[
+    #text(size: 18pt, fill: linear.colors.muted)[
       Documentación y recursos disponibles en el repositorio
     ]
   ]
