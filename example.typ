@@ -1,4 +1,4 @@
-#import "@local/linear:0.1.0": linear
+#import "@local/linear:0.1.0"
 
 #show: linear.theme.with(aspect-ratio: "16-9")
 
