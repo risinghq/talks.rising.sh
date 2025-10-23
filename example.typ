@@ -4,7 +4,6 @@
 
 #show: theme.with(aspect-ratio: "16-9")
 
-// Title slide - direct function call with parameters
 #title-slide(
   title: [Deploy en la nube... ☁️],
   subtitle: [AWS (EC2, Cloudwatch) + Django + Docker + nginx],
@@ -12,10 +11,8 @@
   date: datetime.today().display(),
 )
 
-// Outline slide
 #outline-slide(depth: 2)
 
-// Regular slide - clean syntax
 #slide(
   title: [El resultado final],
   subtitle: [Lo que vamos a construir hoy],
@@ -35,7 +32,6 @@
   ]
 ]
 
-// Slide with two columns
 #slide(title: [Por qué hacerlo bien])[
   #text(size: 24pt, weight: 600)[Manual vs automatizado]
 
@@ -60,7 +56,6 @@
   )
 ]
 
-// Slide with cards using grid-layout helper
 #slide(title: [Componentes necesarios])[
   #grid-layout(
     columns: 2,
@@ -96,7 +91,6 @@
   )
 ]
 
-// Slide with code
 #slide(title: [Crear el proyecto Django])[
   Primero, instalamos Django y creamos el proyecto:
 
@@ -116,7 +110,6 @@
   ```
 ]
 
-// Slide with inline code and callouts
 #slide(title: [Dockerfile])[
   Creamos un `Dockerfile` para empaquetar nuestra aplicación:
 
@@ -139,7 +132,6 @@
   ]
 ]
 
-// Slide with mixed content
 #slide(title: [VPC y networking])[
   Una VPC (Virtual Private Cloud) es tu red privada en AWS.
 
@@ -168,12 +160,10 @@
   )
 ]
 
-// Focus slide
 #focus-slide[
   Infrastructure as Code
 ]
 
-// Slide with success message
 #slide(title: [Aplicar cambios])[
   Una vez definida tu infraestructura en Terraform:
 
@@ -193,7 +183,6 @@
   ]
 ]
 
-// Slide with important note
 #slide(title: [Seguridad])[
   Algunas consideraciones importantes:
 
@@ -213,7 +202,6 @@
   ```
 ]
 
-// Final slide with cards
 #slide(title: [Próximos pasos])[
   #grid-layout(
     columns: 3,
@@ -237,12 +225,10 @@
   La mejor forma de aprender es construyendo. #badge[Empieza hoy]
 ]
 
-// Thank you slide
 #focus-slide[
   ¡Gracias!
 ]
 
-// Q&A slide
 #slide(footer: none)[
   #align(center + horizon)[
     #text(size: 40pt, weight: 600)[¿Preguntas?]
