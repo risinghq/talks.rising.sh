@@ -153,6 +153,12 @@
   Finalmente, podemos probar en el navegador:
   #link("http://127.0.0.1:8000/")[http://127.0.0.1:8000/]
 
+  Para guardar las dependencias:
+
+  ```bash
+  pip freeze > requirements.txt
+  ```
+
   Si aparece la página de inicio de Django, el entorno está correctamente configurado.
 
   #image("img/local.png", width: 100%)
@@ -216,7 +222,7 @@
   subtitle: [El Dockerfile],
 )[
   ```dockerfile
-  FROM python:3.14.0-slim-bullseye
+  FROM python:3.14.0-slim
 
   # Puerto en el que el contenedor expone a la aplicación
   ENV PORT=8080
@@ -230,7 +236,7 @@
   # Instalar dependencias
   RUN pip install --upgrade pip && pip install -r requirements.txt
 
-  CMD gunicorn proyecto1.wsgi:application --bind 0.0.0.0:"${PORT}"
+  CMD ["gunicorn", "proyecto1.wsgi:application", "--bind", "0.0.0.0:8080"]
   EXPOSE ${PORT}
   ```
 
@@ -370,7 +376,7 @@
     ],
   )
 
-  Hoy lo haremos directamente con código. Primero, asegúrate de tener instalado *AWS CLI* en tu máquina:
+  Hoy lo haremos directamente con código. Primero, asegúrate de tener instalado *#link("https://awscli.amazonaws.com/AWSCLIV2.msi")[AWS CLI]* en tu máquina:
   #figure(
     image("img/awscli.png", width: 63%),
   )
