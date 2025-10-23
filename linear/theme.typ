@@ -18,65 +18,23 @@
     fallback: true,
   )
 
-  // Heading styles - Linear's clean, minimal hierarchy
   show heading.where(level: 1): it => {
-    set text(
-      size: sizes.h1,
-      weight: 600,
-      fill: colors.fg,
-    )
-    block(
-      above: 1.5em,
-      below: 1em,
-      it,
-    )
+    set text(size: sizes.h1, weight: 600, fill: colors.fg)
+    block(above: 1.2em, below: 0.8em, it)
   }
 
   show heading.where(level: 2): it => {
-    set text(
-      size: sizes.h2,
-      weight: 600,
-      fill: colors.fg,
-    )
-    block(
-      above: 1.2em,
-      below: 0.8em,
-      it,
-    )
+    set text(size: sizes.h2, weight: 600, fill: colors.fg)
+    block(above: 1em, below: 0.6em, it)
   }
 
   show heading.where(level: 3): it => {
-    set text(
-      size: sizes.h3,
-      weight: 600,
-      fill: colors.fg,
-    )
-    block(
-      above: 1em,
-      below: 0.6em,
-      it,
-    )
+    set text(size: sizes.h3, weight: 600, fill: colors.fg)
+    block(above: 0.8em, below: 0.5em, it)
   }
 
-  show heading.where(level: 4): it => {
-    set text(
-      size: sizes.h4,
-      weight: 600,
-      fill: colors.fg,
-    )
-    block(
-      above: 0.8em,
-      below: 0.5em,
-      it,
-    )
-  }
+  show link: it => text(fill: colors.accent, weight: 500, it)
 
-  // Link styling - Linear's accent color
-  show link: it => {
-    text(fill: colors.accent, weight: 500, it)
-  }
-
-  // Code block styling - LIGHT theme like Linear's documentation
   show raw.where(block: true): it => {
     set par(leading: 0.65em)
     block(
@@ -89,7 +47,7 @@
       {
         set text(
           font: fonts.mono,
-          size: 0.78em,
+          size: 0.85em,
           fill: colors.code-text,
           weight: 400,
         )
@@ -98,7 +56,6 @@
     )
   }
 
-  // Inline code styling - light gray background
   show raw.where(block: false): it => {
     box(
       fill: colors.gray-100,
@@ -107,7 +64,7 @@
       baseline: 10%,
       text(
         font: fonts.mono,
-        size: 0.85em,
+        size: 0.9em,
         fill: colors.gray-700,
         weight: 500,
         it,
@@ -115,49 +72,31 @@
     )
   }
 
-  // List styling - clean and minimal
   set list(
     indent: 0em,
     body-indent: 1em,
     marker: ([•], [◦], [▸]),
-    spacing: 0.5em,
+    spacing: 0.85em,
   )
-
   show list.item: it => {
-    set text(fill: colors.gray-700, size: sizes.small)
+    set text(fill: colors.gray-700, size: sizes.body)
     it
   }
 
-  set enum(
-    indent: 0em,
-    body-indent: 1em,
-    spacing: 0.5em,
-  )
-
+  set enum(indent: 0em, body-indent: 1em, spacing: 0.85em)
   show enum.item: it => {
-    set text(fill: colors.gray-700, size: sizes.small)
+    set text(fill: colors.gray-700, size: sizes.body)
     it
   }
 
-  // Paragraph styling - optimized for readability
-  set par(
-    leading: 0.8em,
-    justify: false,
-    spacing: 0.8em,
-  )
+  set par(leading: 0.8em, justify: false, spacing: 0.8em)
 
-  // Strong and emphasis
   show strong: set text(weight: 600, fill: colors.fg)
   show emph: set text(style: "italic", fill: colors.gray-600)
 
-  // Table styling - minimal borders
   show table: it => {
-    set text(size: sizes.small)
-    block(
-      width: 100%,
-      stroke: none,
-      it,
-    )
+    set text(size: sizes.body)
+    block(width: 100%, stroke: none, it)
   }
 
   show table.cell: it => {
@@ -166,11 +105,9 @@
     it
   }
 
-  // Horizontal rule - subtle
   set line(stroke: 1pt + colors.gray-200)
 
-  // Terms (definition lists)
-  show terms: set text(size: sizes.small)
+  show terms: set text(size: sizes.body)
   show terms.item: it => {
     text(weight: 600, fill: colors.fg, it.term)
     [ — ]

@@ -23,8 +23,6 @@
   - Base de datos PostgreSQL en RDS
   - Dominio personalizado con HTTPS
 
-  #v(1em)
-
   #linear.callout(title: [Tip importante])[
     Todo esto lo haremos usando el tier gratuito de AWS.
   ]
@@ -53,32 +51,19 @@
 #linear.slide(title: [Componentes necesarios])[
   #linear.grid-layout(
     columns: 2,
-
-    linear.card(
-      title: [Docker],
-      footer: [Paso 2],
-    )[
+    linear.card(title: [Docker], footer: [Paso 2])[
       Empaqueta tu aplicación con todas sus dependencias en una imagen portable.
     ],
 
-    linear.card(
-      title: [Amazon ECR],
-      footer: [Paso 3],
-    )[
+    linear.card(title: [Amazon ECR], footer: [Paso 3])[
       Registry para hospedar tus imágenes Docker en AWS.
     ],
 
-    linear.card(
-      title: [Terraform],
-      footer: [Paso 4],
-    )[
+    linear.card(title: [Terraform], footer: [Paso 4])[
       Infrastructure as Code para definir recursos de forma declarativa.
     ],
 
-    linear.card(
-      title: [PostgreSQL RDS],
-      footer: [Paso 5],
-    )[
+    linear.card(title: [PostgreSQL RDS], footer: [Paso 5])[
       Base de datos gestionada con backups automáticos y alta disponibilidad.
     ],
   )
@@ -86,14 +71,6 @@
 
 #linear.slide(title: [Crear el proyecto Django])[
   Primero, instalamos Django y creamos el proyecto:
-
-  ```bash
-  python3.12 -m pip install django
-  python3.12 -m django startproject django_ec2_complete
-  cd django_ec2_complete
-  ```
-
-  Configuramos un entorno virtual:
 
   ```bash
   python3.12 -m venv venv
@@ -118,8 +95,6 @@
   EXPOSE ${PORT}
   ```
 
-  #v(0.5em)
-
   #linear.callout(title: [Importante])[
     Usamos `slim-bullseye` para reducir el tamaño de la imagen y mejorar la seguridad.
   ]
@@ -127,8 +102,6 @@
 
 #linear.slide(title: [VPC y networking])[
   Una VPC (Virtual Private Cloud) es tu red privada en AWS.
-
-  #v(1em)
 
   #linear.two-columns(
     split: 55%,
@@ -167,17 +140,12 @@
   terraform apply
   ```
 
-  Terraform te muestra exactamente qué va a crear.
-
-  #v(1em)
-
   #linear.callout(title: [Listo])[
     Después de unos minutos, tu infraestructura estará desplegada.
 
     Ve a la consola de AWS → EC2 y verás tu servidor corriendo.
   ]
 ]
-
 
 #linear.slide(title: [Seguridad])[
   Algunas consideraciones importantes:
@@ -187,8 +155,6 @@
     - No uses `DEBUG = True` en producción
     - No expongas todos los puertos al internet
   ]
-
-  #v(1em)
 
   *Usa variables de entorno* para configuración sensible:
 
@@ -202,7 +168,6 @@
   #linear.grid-layout(
     columns: 3,
     gutter: 1.5em,
-
     linear.card(title: [Optimizar])[
       Reduce el tamaño de la imagen Docker con `.dockerignore`
     ],

@@ -5,8 +5,8 @@
   slide, split-slide, thank-you-slide, title-slide,
 )
 #import "components.typ": (
-  badge, button, callout, card, code-block, divider, feature, highlight,
-  icon-box, metric, progress, quote, status, step, tag,
+  badge, button, callout, card, divider, feature, highlight, icon-box, metric,
+  progress, quote, status,
 )
 #import "layouts.typ": grid-layout, three-columns, two-columns
 
@@ -37,7 +37,6 @@
 #let button = button
 #let callout = callout
 #let card = card
-#let code-block = code-block
 #let divider = divider
 #let feature = feature
 #let highlight = highlight
@@ -46,8 +45,6 @@
 #let progress = progress
 #let quote = quote
 #let status = status
-#let step = step
-#let tag = tag
 
 // Re-export layouts
 #let grid-layout = grid-layout
