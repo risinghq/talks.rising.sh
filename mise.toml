@@ -3,10 +3,38 @@ typst = "0.13.1"
 typstyle = "0.13.18"
 
 [tasks.compile]
-description = "transform to pdf"
+description = "Compile Typst document to PDF"
 alias = "c"
 run = "typst compile example.typ"
 
-[tasks.dev]
-description = "watch the doc"
+[tasks.watch]
+description = "Watch and auto-compile on changes"
+alias = "w"
 run = "typst watch example.typ"
+
+[tasks.format]
+description = "Format Typst files with typstyle"
+alias = "f"
+run = "typstyle -i ."
+
+[tasks.format-check]
+description = "Check formatting without modifying files"
+run = "typstyle --check ."
+
+[tasks.clean]
+description = "Remove generated PDF files"
+run = ["rm -f example.pdf", "rm -f main.pdf", "rm -f *.pdf"]
+
+[tasks.check]
+description = "Run all checks (format, compile)"
+depends = ["format-check", "compile"]
+
+[tasks.dev]
+description = "Development mode with file watching"
+alias = "d"
+run = "typst watch example.typ --open"
+
+# CI/CD tasks
+[tasks.ci]
+description = "Run continuous integration checks"
+run = ["mise run format-check", "mise run compile"]

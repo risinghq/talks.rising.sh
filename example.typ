@@ -10,7 +10,6 @@
   ),
 )
 
-// Title slide
 #(linear.title-slide)(
   title: [Desplegando Django en AWS],
   subtitle: [El camino correcto: Docker, Terraform y PostgreSQL],
@@ -18,7 +17,6 @@
   date: [Octubre 2025],
 )
 
-// Table of contents
 #(linear.outline-slide)(depth: 2)
 
 // Regular slide
@@ -37,7 +35,6 @@
   #v(1em)
 
   #(linear.callout)(
-    type: "info",
     title: [Tip importante],
   )[
     Todo esto lo haremos usando el tier gratuito de AWS.
@@ -46,23 +43,21 @@
 
 // Slide with two columns
 #(linear.slide)(title: [Por qué hacerlo bien])[
-  #text(size: 28pt, weight: 600)[Manual vs automatizado]
+  #text(size: 24pt, weight: 600)[Manual vs automatizado]
 
-  #v(1.5em)
+  #v(1em)
 
   #(linear.two-columns)(
     split: 50%,
     [
       *Forma manual:*
-      #v(0.3em)
       - Click en la consola
       - Sin historial
       - No repetible
       - Difícil de revisar
     ],
     [
-      *Con código:* #h(0.5em) #(linear.badge)(type: "success")[Recomendado]
-      #v(0.3em)
+      *Con código:* #h(0.3em) #(linear.badge)[Recomendado]
       - Versionado en git
       - Repetible
       - Revisable
@@ -146,7 +141,7 @@
 
   #v(0.5em)
 
-  #(linear.callout)(type: "warning", title: [Importante])[
+  #(linear.callout)(title: [Importante])[
     Usamos `slim-bullseye` para reducir el tamaño de la imagen y mejorar la seguridad.
   ]
 ]
@@ -198,18 +193,18 @@
 
   #v(1em)
 
-  #(linear.callout)(type: "success", title: [Listo])[
+  #(linear.callout)(title: [Listo])[
     Después de unos minutos, tu infraestructura estará desplegada.
 
     Ve a la consola de AWS → EC2 y verás tu servidor corriendo.
   ]
 ]
 
-// Slide with danger callout
+// Slide with important note
 #(linear.slide)(title: [Seguridad])[
   Algunas consideraciones importantes:
 
-  #(linear.callout)(type: "danger", title: [Nunca hagas esto])[
+  #(linear.callout)(title: [Nunca hagas esto])[
     - No pongas credenciales en el código
     - No uses `DEBUG = True` en producción
     - No expongas todos los puertos al internet
@@ -246,7 +241,7 @@
 
   #v(1em)
 
-  La mejor forma de aprender es construyendo. #(linear.badge)(type: "accent")[Empieza hoy]
+  La mejor forma de aprender es construyendo. #(linear.badge)[Empieza hoy]
 ]
 
 // Thank you slide
@@ -257,11 +252,11 @@
 // Q&A slide
 #(linear.slide)(footer: none)[
   #align(center + horizon)[
-    #text(size: 48pt, weight: 600)[¿Preguntas?]
+    #text(size: 40pt, weight: 600)[¿Preguntas?]
 
     #v(2em)
 
-    #text(size: 20pt, fill: (linear.colors.muted-fg))[
+    #text(size: 18pt, fill: (linear.colors.muted))[
       Documentación y recursos disponibles en el repositorio
     ]
   ]

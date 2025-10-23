@@ -1,5 +1,12 @@
 [package]
 name = "linear"
 version = "0.1.0"
+entrypoint = "lib.typ"
 authors = ["David Duran"]
-entry = "lib.typ"
+license = "MIT"
+categories = ["presentation"]
+compiler = "0.13.1"
+
+[template]
+path = "template"
+entrypoint = "main.typ"
