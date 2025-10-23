@@ -110,28 +110,32 @@
 #linear.slide(title: [Crear el proyecto Django])[
   Primero, instalamos Django y creamos el proyecto:
 
-  ```bash
-  python3.12 -m venv venv
-  source venv/bin/activate
-  pip install django gunicorn psycopg2-binary
-  pip freeze > requirements.txt
-  ```
+  #block(width: 75%)[
+    ```bash
+    python3.12 -m venv venv
+    source venv/bin/activate
+    pip install django gunicorn psycopg2-binary
+    pip freeze > requirements.txt
+    ```
+  ]
 ]
 
 #linear.slide(title: [Dockerfile])[
   Creamos un `Dockerfile` para empaquetar nuestra aplicación:
 
-  ```dockerfile
-  FROM python:3.12.2-slim-bullseye
-  ENV PYTHONBUFFERED=1
-  ENV PORT 8080
-  WORKDIR /app
-  COPY . /app/
-  RUN pip install --upgrade pip
-  RUN pip install -r requirements.txt
-  CMD gunicorn django_ec2_complete.wsgi:application --bind 0.0.0.0:"${PORT}"
-  EXPOSE ${PORT}
-  ```
+  #block(width: 75%)[
+    ```dockerfile
+    FROM python:3.12.2-slim-bullseye
+    ENV PYTHONBUFFERED=1
+    ENV PORT 8080
+    WORKDIR /app
+    COPY . /app/
+    RUN pip install --upgrade pip
+    RUN pip install -r requirements.txt
+    CMD gunicorn django_ec2_complete.wsgi:application --bind 0.0.0.0:"${PORT}"
+    EXPOSE ${PORT}
+    ```
+  ]
 
   #linear.callout(title: [Importante])[
     Usamos `slim-bullseye` para reducir el tamaño de la imagen y mejorar la seguridad.
@@ -144,16 +148,18 @@
   #linear.two-columns(
     split: 55%,
     [
-      ```hcl
-      resource "aws_vpc" "default" {
-        cidr_block           = "10.0.0.0/16"
-        enable_dns_support   = true
-        enable_dns_hostnames = true
-        tags = {
-          Name = "Django_EC2_VPC"
+      #block(width: 100%)[
+        ```hcl
+        resource "aws_vpc" "default" {
+          cidr_block           = "10.0.0.0/16"
+          enable_dns_support   = true
+          enable_dns_hostnames = true
+          tags = {
+            Name = "Django_EC2_VPC"
+          }
         }
-      }
-      ```
+        ```
+      ]
     ],
     [
       *Componentes clave:*
@@ -173,10 +179,12 @@
 #linear.slide(title: [Aplicar cambios])[
   Una vez definida tu infraestructura en Terraform:
 
-  ```bash
-  terraform init
-  terraform apply
-  ```
+  #block(width: 75%)[
+    ```bash
+    terraform init
+    terraform apply
+    ```
+  ]
 
   #linear.callout(title: [Listo])[
     Después de unos minutos, tu infraestructura estará desplegada. Ve a la consola de AWS → EC2 y verás tu servidor corriendo.
@@ -194,10 +202,12 @@
 
   *Usa variables de entorno* para configuración sensible:
 
-  ```python
-  SECRET_KEY = os.getenv('SECRET_KEY')
-  DB_PASSWORD = os.getenv('DB_PASSWORD')
-  ```
+  #block(width: 75%)[
+    ```python
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    DB_PASSWORD = os.getenv('DB_PASSWORD')
+    ```
+  ]
 ]
 
 #linear.slide(title: [Próximos pasos])[
