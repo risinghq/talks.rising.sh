@@ -65,12 +65,12 @@
 
   1. Si te falta alguna herramienta, te recomiendo usar #link("[https://mise.jdx.dev/getting-started.html")[mise]. Es práctico y te permite instalar y gestionar todas las dependencias necesarias *con un solo comando*, además de cambiar fácilmente de versión según el proyecto.
 
-   #linear.callout(title: [Ventajas de usar mise])[
-    - Gestiona Python, AWS CLI y GitHub CLI desde un mismo lugar
-    - Permite cambiar de versión fácilmente según el proyecto
-    - Es más intuitiva que alternativas como pyenv o asdf (además de que solo sirven para Python)
-    - No necesita permisos de administrador
-   ]
+    #linear.callout(title: [Ventajas de usar mise])[
+      - Gestiona Python, AWS CLI y GitHub CLI desde un mismo lugar
+      - Permite cambiar de versión fácilmente según el proyecto
+      - Es más intuitiva que alternativas como pyenv o asdf (además de que solo sirven para Python)
+      - No necesita permisos de administrador
+    ]
 
   2. También puedes instalar cada herramienta *manualmente* por separado desde sus páginas oficiales: #link("[https://www.python.org/downloads/")[python.org], #link("[https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")[aws.amazon.com/cli], #link("[https://cli.github.com/")[cli.github.com]
 ]
