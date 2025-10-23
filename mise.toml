@@ -1,8 +1,9 @@
 [tools]
 typst = "0.13.1"
 typstyle = "0.13.18"
-uv = "0.9.5"
+uv = "latest"
 ruff = "0.14.1"
+gh = "latest"
 
 # Development tasks
 [tasks.fonts]

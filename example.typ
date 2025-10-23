@@ -3,51 +3,76 @@
 #show: linear.theme.with(aspect-ratio: "16-9")
 
 #linear.title-slide(
-  title: [Deploy en la nube... ☁️],
-  subtitle: [AWS (EC2, Cloudwatch) + Django + Docker + nginx],
+  title: [Cómo hacer deploy en la nube... ☁️],
+  subtitle: [Stack: AWS (EC2, Cloudwatch) + Django + Docker + Terraform + nginx],
 )
 
-#linear.outline-slide()
+#linear.outline-slide(title: [La agenda para hoy incluye:])
 
 #linear.slide(
   title: [Introducción],
   subtitle: [El resultado final],
 )[
-  Vamos a construir esto:
+  Vamos a trabajar con dos proyectos basados en Django. Como asumiré que ya manejan este framework, podremos concentrarnos directamente en los aspectos del deploy (o _despliegue_).
 
-  - Un proyecto Django corriendo en producción
-  - Dockerizado y desplegado en EC2
-  - Conectado a PostgreSQL en RDS
-  - Con un dominio personalizado y HTTPS
-  - Todo gestionado con Terraform
+  Un detalle importante es que gran parte de lo que veremos hoy también es aplicable a otros frameworks como React, Next.js o Astro.
 
-  #linear.callout(title: [Y lo mejor])[
-    Todo gratis usando el tier gratuito de AWS.
+  El plan es:
+
+  - Dockerizar ambos proyectos y desplegarlos en Amazon EC2
+  - Configurar un dominio personalizado con certificado HTTPS
+  - Gestionar toda la infraestructura usando Terraform
+
+  #linear.callout(title: [Importante])[
+    El workshop está diseñado para que no tenga costo alguno. A menos que necesites escalar para más de 100 usuarios concurrentes, el tier gratuito de AWS será más que suficiente.
   ]
 ]
 
-#linear.slide(title: [Por qué importa hacerlo bien])[
-  Podrías hacer click en la consola de AWS y crear recursos manualmente. Pero eso tiene problemas:
+#linear.slide(
+  title: [Introducción],
+  subtitle: [Preparación del entorno de trabajo],
+)[
+  Para este workshop vamos a necesitar:
 
-  #linear.two-columns(
-    split: 50%,
-    [
-      *Forma manual (problemas):*
-      - No es repetible
-      - No hay historial de cambios
-      - Difícil de compartir con el equipo
-      - Imposible de revisar en code review
-    ],
-    [
-      *Con código (IaC):* #h(0.3em) #linear.badge[Recomendado]
-      - Repetible
-      - Versionable con git
-      - Revisable en code reviews
-      - El código es la documentación
-    ],
+  - Python 3.x (para trabajar de forma local)
+  - AWS CLI (para conectarnos con Amazon Web Services)
+  - GitHub CLI (gh) (para gestionar nuestros repositorios)
+
+  Además, usaremos nginx, Docker y Terraform, aunque no será necesario instalarlos localmente.
+
+  Empecemos verificando qué tienes ya instalado. Abre tu terminal (PowerShell o CMD en Windows, Terminal en Mac/Linux) y ejecuta estos comandos uno por uno:
+
+  ```bash
+  # Verifica si tienes Python
+  python --version || python3 --version
+
+  # Verifica si tienes AWS CLI
+  aws --version
+
+  # Verifica si tienes GitHub CLI
+  gh --version
+  ```
+
+  #figure(
+    image("img/version.png", width: 80%),
   )
 
-  Hoy vamos a hacerlo con código desde el principio.
+  Si ves que aparecen números de versión, ¡genial! Esa herramienta está lista y puedes continuar. Si en cambio te muestra un error o dice que el comando no existe, significa que necesitas instalarla.
+
+  Si ya tienes todo configurado, puedes saltar directamente a la siguiente sección.
+
+  Mmm... así que te faltan algunas herramientas. Tienes dos opciones (personalmente te recomiendo usar la primera opción):
+
+  1. Si te falta alguna herramienta, te recomiendo usar #link("[https://mise.jdx.dev/getting-started.html")[mise]. Es práctico y te permite instalar y gestionar todas las dependencias necesarias *con un solo comando*, además de cambiar fácilmente de versión según el proyecto.
+
+   #linear.callout(title: [Ventajas de usar mise])[
+    - Gestiona Python, AWS CLI y GitHub CLI desde un mismo lugar
+    - Permite cambiar de versión fácilmente según el proyecto
+    - Es más intuitiva que alternativas como pyenv o asdf (además de que solo sirven para Python)
+    - No necesita permisos de administrador
+   ]
+
+  2. También puedes instalar cada herramienta *manualmente* por separado desde sus páginas oficiales: #link("[https://www.python.org/downloads/")[python.org], #link("[https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")[aws.amazon.com/cli], #link("[https://cli.github.com/")[cli.github.com]
 ]
 
 #linear.section-slide[Paso 1: Proyecto Django]
@@ -176,6 +201,30 @@
 
 #linear.section-slide[Paso 3: Amazon ECR]
 
+#linear.slide(title: [Por qué importa hacerlo bien])[
+  Podrías hacer click en la consola de AWS y crear recursos manualmente. Pero eso tiene problemas:
+
+  #linear.two-columns(
+    split: 50%,
+    [
+      *Forma manual (problemas):*
+      - No es repetible
+      - No hay historial de cambios
+      - Difícil de compartir con el equipo
+      - Imposible de revisar en code review
+    ],
+    [
+      *Con código (IaC):* #h(0.3em) #linear.badge[Recomendado]
+      - Repetible
+      - Versionable con git
+      - Revisable en code reviews
+      - El código es la documentación
+    ],
+  )
+
+  Hoy vamos a hacerlo con código desde el principio.
+]
+
 #linear.slide(
   title: [Amazon ECR],
   subtitle: [Subir nuestra imagen a la nube],
@@ -183,15 +232,15 @@
   ECR (Elastic Container Registry) es el lugar donde AWS hospeda tus imágenes Docker. Piénsalo como GitHub pero para imágenes Docker.
 
   1. *Crear el registry:*
-     #block(width: 90%)[
+    #block(width: 90%)[
       ```bash
       aws ecr create-repository --repository-name django-ec2-complete
       # Esto te da un URI, como: 620457613573.dkr.ecr.us-east-1.amazonaws.com/django-ec2-complete
       ```
-     ]
+    ]
 
   2. *Login, tag y push:*
-     #block(width: 90%)[
+    #block(width: 90%)[
       ```bash
       # Login a ECR (reemplaza <TU_URI>)
       docker login -u AWS -p $(aws ecr get-login-password --region us-east-1) <TU_URI>.dkr.ecr.us-east-1.amazonaws.com
@@ -202,7 +251,7 @@
       # Push
       docker push <TU_URI>/django-ec2-complete:latest
       ```
-     ]
+    ]
 ]
 
 #linear.section-slide[Paso 4: Infraestructura con Terraform]
@@ -255,7 +304,7 @@
       - *Route Table:* controla cómo sale el tráfico.
       - *Subnets:* divisiones dentro de tu VPC. Necesitamos dos para RDS.
       - *Security Groups:* firewall para controlar tráfico.
-    ]
+    ],
   )
 ]
 
@@ -346,7 +395,7 @@
       }
       ```
       #align(center)[_Describes el resultado_]
-    ]
+    ],
   )
 ]
 

@@ -106,12 +106,16 @@
             let num = slide-counter.get().first()
             if subtitle != none {
               [#text(size: sizes.h1, weight: 500, fill: colors.gray-500)[#title]
-              #text(size: sizes.h1, weight: 500, fill: colors.gray-400)[#" / "]
-              #text(size: sizes.h1, weight: 700, fill: colors.fg)[#subtitle]
-              #label("slide-" + str(num))]
+                #text(
+                  size: sizes.h1,
+                  weight: 500,
+                  fill: colors.gray-400,
+                )[#" / "]
+                #text(size: sizes.h1, weight: 700, fill: colors.fg)[#subtitle]
+                #label("slide-" + str(num))]
             } else {
               [#text(size: sizes.h1, weight: 700, fill: colors.fg, title)
-              #label("slide-" + str(num))]
+                #label("slide-" + str(num))]
             }
           }
         },
@@ -177,7 +181,7 @@
       inset: (bottom: 0.6em),
       text(size: sizes.h1, weight: 700, fill: colors.fg, title),
     )
-    v(spacing.lg)
+    v(spacing.sm)
 
     set text(size: sizes.body, fill: colors.fg)
     set par(leading: 0.7em, spacing: 0.6em)
@@ -206,7 +210,7 @@
                 )[#(i + 1).],
                 link(
                   label("slide-" + str(i + 1)),
-                  text(weight: 400, fill: colors.accent)[#slide-title]
+                  text(weight: 400, fill: colors.fg)[#slide-title],
                 ),
               )
               if i < first-col.len() - 1 {
@@ -228,7 +232,7 @@
                 )[#(idx + 1).],
                 link(
                   label("slide-" + str(idx + 1)),
-                  text(weight: 400, fill: colors.accent)[#slide-title]
+                  text(weight: 400, fill: colors.fg)[#slide-title],
                 ),
               )
               if i < second-col.len() - 1 {

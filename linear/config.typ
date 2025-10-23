@@ -1,6 +1,6 @@
 #let colors = (
   // Primary colors
-  bg: rgb("#ffffff"),
+  bg: rgb("#fcfcfc"),
   fg: rgb("#18181b"),
   muted: rgb("#6b7280"),
   border: rgb("#e5e7eb"),
