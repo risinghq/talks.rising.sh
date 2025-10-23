@@ -5,8 +5,6 @@
 #linear.title-slide(
   title: [Deploy en la nube... ☁️],
   subtitle: [AWS (EC2, Cloudwatch) + Django + Docker + nginx],
-  author: [Cloud Engineering Workshop],
-  date: datetime.today().display(),
 )
 
 #linear.outline-slide()

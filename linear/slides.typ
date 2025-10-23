@@ -28,7 +28,7 @@
     if subtitle != none {
       v(spacing.md)
       block(width: 90%, text(
-        size: sizes.h3,
+        size: sizes.h2,
         weight: 400,
         fill: colors.muted,
         subtitle,
@@ -41,7 +41,7 @@
       block(
         width: 100%,
         {
-          set text(size: sizes.small, fill: colors.muted, weight: 400)
+          set text(size: sizes.body, fill: colors.muted, weight: 400)
           if author != none {
             text(weight: 500, fill: colors.gray-600)[#author]
           }
