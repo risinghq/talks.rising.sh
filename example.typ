@@ -148,18 +148,16 @@
   Este comando inicia el servidor de desarrollo.
   No se usa en producción, pero permite probar la aplicación localmente.
 
-  #image("img/server.png", width: 80%)
+  #image("img/server.png", width: 70%)
 
   Finalmente, podemos probar en el navegador:
-  #link("http://127.0.0.1:8000/")[http://127.0.0.1:8000/]
+  #link("http://127.0.0.1:8000/")[http://127.0.0.1:8000/]. Si aparece la página de inicio de Django, el entorno está correctamente configurado.
 
   Para guardar las dependencias:
 
   ```bash
   pip freeze > requirements.txt
   ```
-
-  Si aparece la página de inicio de Django, el entorno está correctamente configurado.
 
   #image("img/local.png", width: 100%)
 ]

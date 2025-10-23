@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copia todo el contenido de la carpeta "proyecto1" (directorio actual)
 # al directorio /app dentro del contenedor Docker.
-COPY . /app/
+COPY ./proyecto1 /app
 # Instalar dependencias
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
