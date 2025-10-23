@@ -1,16 +1,14 @@
 [tools]
 typst = "0.13.1"
 typstyle = "0.13.18"
+uv = "0.9.5"
+ruff = "0.14.1"
 
-[tasks.compile]
-description = "Compile Typst document to PDF"
-alias = "c"
-run = "typst compile example.typ"
-
-[tasks.watch]
-description = "Watch and auto-compile on changes"
-alias = "w"
-run = "typst watch example.typ"
+# Development tasks
+[tasks.fonts]
+description = "Convert variable fonts to static fonts for Typst"
+alias = "fonts"
+run = "cd fonts && uv sync --quiet && uv run convert.py"
 
 [tasks.format]
 description = "Format Typst files with typstyle"
@@ -21,19 +19,22 @@ run = "typstyle -i ."
 description = "Check formatting without modifying files"
 run = "typstyle --check ."
 
-[tasks.clean]
-description = "Remove generated PDF files"
-run = ["rm -f example.pdf", "rm -f main.pdf", "rm -f *.pdf"]
+[tasks.compile]
+description = "Compile Typst document to PDF"
+alias = "c"
+run = "typst compile --font-path fonts example.typ"
 
-[tasks.check]
-description = "Run all checks (format, compile)"
-depends = ["format-check", "compile"]
+[tasks.watch]
+description = "Watch and auto-compile on changes"
+alias = "w"
+run = "typst watch --font-path fonts example.typ"
 
 [tasks.dev]
 description = "Development mode with file watching"
 alias = "d"
-run = "typst watch example.typ --open"
+run = "typst watch --font-path fonts example.typ --open"
 
+# Package management
 [tasks.pkg-install]
 description = "Install linear package to local Typst packages"
 alias = "install"
@@ -44,7 +45,15 @@ description = "Uninstall linear package from local Typst packages"
 alias = "uninstall"
 run = "pwsh scripts/uninstall-local-pkg.ps1"
 
-# CI/CD tasks
+# Utility tasks
+[tasks.clean]
+description = "Remove generated PDF files"
+run = ["rm -f example.pdf", "rm -f main.pdf", "rm -f *.pdf"]
+
+[tasks.check]
+description = "Run all checks (format, compile)"
+depends = ["format-check", "compile"]
+
 [tasks.ci]
 description = "Run continuous integration checks"
 run = ["mise run format-check", "mise run compile"]
