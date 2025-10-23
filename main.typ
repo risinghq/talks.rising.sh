@@ -14,8 +14,6 @@
   ),
 )
 
-#set text(font: "Open Sauce One")
-
 #title-slide[]
 
 = Introducción

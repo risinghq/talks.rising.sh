@@ -25,8 +25,8 @@
 )
 
 // Typography scale
-#let font-family = ("Inter", "SF Pro Display", "system-ui", "sans-serif")
-#let font-mono = ("JetBrains Mono", "Fira Code", "Courier New", "monospace")
+#let font-family = "Inter"
+#let font-mono = ("JetBrains Mono", "Fira Code")
 
 // Create the theme
 #let linear-theme(
@@ -372,45 +372,44 @@
 // Outline/table of contents slide
 #let outline-slide(title: [Contenido], depth: 2) = {
   slide(title: title)[
-    set text(size: 22pt)
+    #set text(size: 22pt)
 
-    // Custom outline styling
-    show outline.entry: it => {
-    let indent = calc.mul(1.5em, it.level - 1)
+    #show outline.entry: it => {
+      let indent = 1.5em * (it.level - 1)
 
-    block(
-    width: 100%,
-    inset: (left: indent, y: 0.4em),
-    {
-    if it.level == 1 {
-    text(weight: 600, fill: linear-colors.primary, it.body)
-    } else {
-    text(fill: linear-colors.muted-fg, it.body)
+      block(
+        width: 100%,
+        inset: (left: indent, y: 0.4em),
+        {
+          if it.level == 1 {
+            text(weight: 600, fill: linear-colors.primary, it.body())
+          } else {
+            text(fill: linear-colors.muted-fg, it.body())
+          }
+
+          h(1fr)
+
+          text(
+            fill: linear-colors.muted-fg,
+            size: 18pt,
+            it.page(),
+          )
+        },
+      )
+
+      // Add a subtle divider after level 1 entries
+      if it.level == 1 {
+        v(0.2em)
+        block(
+          width: 100%,
+          height: 1pt,
+          fill: linear-colors.border,
+        )
+        v(0.2em)
+      }
     }
 
-    h(1fr)
-
-    text(
-    fill: linear-colors.muted-fg,
-    size: 18pt,
-    it.page
-    )
-    }
-    )
-
-    // Add a subtle divider after level 1 entries
-    if it.level == 1 {
-    v(0.2em)
-    block(
-    width: 100%,
-    height: 1pt,
-    fill: linear-colors.border,
-    )
-    v(0.2em)
-    }
-    }
-
-    outline(depth: depth, indent: false)
+    #outline(depth: depth)
   ]
 }
 
