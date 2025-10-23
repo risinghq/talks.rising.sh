@@ -1,0 +1,5 @@
+[package]
+name = "linear"
+version = "0.1.0"
+authors = ["David Duran"]
+entry = "lib.typ"
