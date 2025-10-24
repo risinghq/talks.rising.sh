@@ -1198,138 +1198,38 @@
   ```
   Outputs:
 
-  instance_ip = "18.220.45.123"
-  app_url     = "http://18.220.45.123"    # Copia la URL, ábrela en tu navegador
+  instance_ip = "99.999.99.999"
+  app_url     = "http://99.999.99.999"    # Copia la URL, ábrela en tu navegador
   ```
 ]
 
-#linear.slide(
-  title: [Terraform],
-  subtitle: [Cómo modificar la infraestructura],
-)[
-  *Escenario:* Quieres abrir el puerto 8000 para debugging. Edita `main.tf`:
+#linear.focus-slide[
+  Listo, ya tenemos acceso al servidor Django desplegado desde AWS 🎉
+]
 
-  ```hcl
-  ingress {
-    description = "Django dev server"
-    from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ```
-
-  Ejecuta:
-
-  ```bash
-  terraform plan   # Verás: "aws_security_group.django will be updated"
-  terraform apply  # Solo modifica el security group
-  ```
-
-  #linear.callout()[
-    Terraform NO recrea todo. Solo actualiza lo que cambió gracias al archivo de estado.
-  ]
+#linear.focus-slide[
+  Mmmm... veo un error al acceder 🤔
 ]
 
 #linear.slide(
   title: [Terraform],
   subtitle: [Destrucción de recursos],
 )[
-  Cuando termines con el proyecto, es recomendable ejecutar:
+  Cuando finalices el proyecto, ejecuta:
   ```bash
-  terraform destroy
+    terraform destroy
   ```
 
-  Terraform eliminará TODO en orden inverso: Primero la instancia EC2, luego Security Groups, Route Tables y asociaciones, Subnets, Internet Gateway, VPC.
+  Terraform eliminará todos los recursos en orden inverso: primero la instancia EC2, luego los Security Groups, Route Tables, Subnets, el Internet Gateway y finalmente la VPC.
 
-  #linear.callout(title: [Sobre los costos])[
-    AWS cobra por recursos activos. Si no destruyes:
-    - Instancia EC2: ~\$0.01/hora = ~\$7/mes
-    - IP elástica (si la reservas): \$0.005/hora cuando no está en uso
+  Recuerda que *AWS cobra por recursos activos* (incluso si no los estés usando directamente). Si no los eliminas, podrías seguir generando costos. Por ejemplo, las instancias EC2 cuestan algo de \$0.01/hora (te saldría más o menos \$7/mes) o IP elástica (reservada y sin uso) unos \$0.005/hora.
 
-    *Destruye lo que no uses.*
+  *Destruye siempre lo que no uses.*
+
+  #linear.callout(title: [Tip])[
+    Usa `terraform plan -destroy` para ver qué se eliminará antes de ejecutar la destrucción.
   ]
-
-  Tip: `terraform plan -destroy` muestra qué se eliminará sin hacerlo.
 ]
-
-#linear.section-slide[Dominio y HTTPS]
-
-#linear.slide(
-  title: [Dominio],
-  subtitle: [Por qué un Application Load Balancer],
-)[
-  Podrías apuntar tu dominio directamente a la IP de EC2, pero un Load Balancer (ALB) es la forma profesional de hacerlo:
-  - *HTTPS:* Gestiona certificados SSL gratis con AWS Certificate Manager (ACM).
-  - *Escalabilidad:* Puede distribuir tráfico entre múltiples servidores.
-  - *Alta disponibilidad:* Si un servidor falla, puede redirigir el tráfico a otros.
-
-  #linear.grid-layout(
-    columns: 2,
-    gutter: 1.5em,
-    linear.card(title: [ACM Certificate])[
-      Genera un certificado SSL gratuito para tu dominio.
-      ```hcl
-      resource "aws_acm_certificate" "cert" {
-        domain_name       = "tudominio.com"
-        validation_method = "DNS"
-      }
-      ```
-    ],
-
-    linear.card(title: [Application Load Balancer])[
-      Crea el balanceador que recibirá el tráfico.
-      ```hcl
-      resource "aws_lb" "default" {
-        load_balancer_type = "application"
-        security_groups    = [...]
-        subnets            = [...]
-      }
-      ```
-    ],
-
-    linear.card(title: [ALB Listener])[
-      Configura el ALB para que escuche en el puerto 443 (HTTPS) usando el certificado.
-      ```hcl
-      resource "aws_lb_listener" "default" {
-        port = 443
-        protocol = "HTTPS"
-        certificate_arn = aws_acm_certificate.cert.arn
-      }
-      ```
-    ],
-
-    linear.card(title: [Route 53])[
-      Crea los records DNS (tipo A) para que tu dominio apunte al Load Balancer.
-      ```hcl
-      resource "aws_route53_record" "root" {
-        name = "tudominio.com"
-        type = "A"
-        alias { ... }
-      }
-      ```
-    ],
-  )
-]
-
-#linear.slide(
-  title: [Configuración final de Django],
-)[
-  Finalmente, actualiza `settings.py` para permitir las peticiones desde tu dominio.
-  #block(width: 80%)[
-    ```python
-    ALLOWED_HOSTS = ['tudominio.com', 'www.tudominio.com']
-
-    CSRF_TRUSTED_ORIGINS = [
-      'https://tudominio.com',
-      'https://www.tudominio.com'
-    ]
-    ```
-  ]
-
-  Reconstruye la imagen, súbela a ECR y ejecuta `terraform apply` por última vez.
-]
-
 
 #linear.section-slide[En conclusión... 😮‍💨]
 
