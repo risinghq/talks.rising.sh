@@ -1,4 +1,5 @@
 #import "linear/main.typ" as linear
+#import "@preview/fletcher:0.5.8" as fletcher: diagram, edge, node
 
 #show: linear.theme.with(aspect-ratio: "16-9")
 
@@ -1543,6 +1544,155 @@
   #linear.callout(title: [Tip])[
     Usa `terraform plan -destroy` para ver qué se eliminará antes de ejecutar la destrucción.
   ]
+]
+
+#linear.section-slide[Herramienta \#5: nginx]
+
+#linear.slide(
+  title: [nginx],
+  subtitle: [Proxy inverso],
+)[
+  No es recomendable exponer Gunicorn directamente a internet. Gunicorn ejecuta la app Django, pero no está optimizado para tráfico HTTP, archivos estáticos o SSL. Para eso usamos un reverse proxy como nginx.
+
+  #v(1em)
+
+  #figure(
+    image("img/diagram.png", width: 85%),
+  )
+
+  En la gráfica, la arquitectura consiste de:
+
+  #v(1em)
+
+  *nginx* (reverse proxy + servidor de archivos estáticos):
+
+  - Recibe el tráfico público en los puertos 80 (HTTP).
+  - Sirve archivos estáticos (carpeta `/static/`).
+  - Reenvía las peticiones dinámicas a Gunicorn ( `proxy_pass`).
+
+  #v(1em)
+
+  *gunicorn* (servidor de aplicación WSGI):
+
+  - Ejecuta la aplicación Django.
+  - Espera peticiones en un puerto local no expuesto ( `127.0.0.1:8000`), accesible únicamente por nginx.
+  - Gestiona procesos _worker_ de Python.
+
+  #set enum(spacing: 0.9em)
+
+  #colbreak()
+
+  Para integrar nginx, debemos de:
+
+  1. *Configurar `STATIC_ROOT`* en Django.
+
+    Para usar exponer archivos estáticos con Django, Django necesita un directorio donde almacenar todos los archivos que nginx usará. En `proyecto1/settings.py`, define dónde `collectstatic` debe agrupar los archivos:
+
+    ```python
+    STATIC_URL = "static/"
+    STATIC_ROOT = BASE_DIR / "staticfiles"
+    ```
+
+    Luego ejecuta:
+
+    ```bash
+    python manage.py collectstatic
+    ```
+
+    Esto generará la carpeta `staticfiles`.
+
+  #colbreak()
+
+  2. *Crear el archivo `nginx.conf`* con la configuración de proxy y archivos estáticos.
+
+    Este archivo configurará Nginx para servir directamente los *archivos estáticos* generados por `collectstatic` (cuando el usuario accede a `/static/`) y redirigir el *resto de las solicitudes* a Gunicorn (por ejemplo, las páginas de tu aplicación Django).
+
+    ```nginx
+    server {
+        listen 80;
+
+        location /static/ {
+            alias /app/staticfiles/;
+        }
+
+        # Redirigir todas las demás solicitudes a Gunicorn
+        location / {
+            proxy_pass http://127.0.0.1:8000;
+
+            # Enviar encabezados importantes al servidor de aplicación
+            proxy_set_header Host $host;
+        }
+    }
+    ```
+
+  #colbreak()
+
+  3. Crear un script `entrypoint.sh` que *inicie ambos servicios*.
+
+    Docker está diseñado para ejecutar un solo proceso principal por contenedor. La forma recomendada de producción es usar contenedores separados, uno para gunicorn y otro para nginx. *Como estamos en un entorno de desarrollo*, usaremos un único contenedor para ambos servicios.
+
+    ```bash
+    #!/bin/bash
+    set -e
+
+    python manage.py collectstatic --noinput --clear
+
+    # Inicia nginx en primer plano
+    nginx -g "daemon off;" &
+
+    # Inicia Gunicorn como proceso principal
+    exec gunicorn proyecto1.wsgi:application --bind 127.0.0.1:8000
+    ```
+
+    En el caso de Linux, no olvides dar los permisos de ejecución al script con:
+
+    ```bash
+    chmod +x entrypoint.sh
+    ```
+
+  #colbreak()
+
+  4. *Actualizar el `Dockerfile`*. Añade los comandos para instalar Nginx y copiar los nuevos archivos.
+
+    ```bash
+    RUN apt-get install -y nginx
+
+    # copiar los archivos
+    COPY nginx.conf /etc/nginx/conf.d/default.conf
+    COPY entrypoint.sh /app/entrypoint.sh
+
+    # establecer al entrypoint.sh como punto de entrada
+    ENTRYPOINT ["/app/entrypoint.sh"]
+    ```
+
+  5. *Modificar el mapeo de puertos en Terraform* para exponer solo los puertos públicos (80/443).
+
+    En el `user_data` del recurso `aws_instance`, asegúrate de que el puerto mapeado sea `80:80`.
+
+    ```bash
+    # main.tf
+    docker run -d -p 80:80 --restart unless-stopped \
+           # ... (variables de entorno)
+    ```
+
+  #colbreak()
+
+  Finalmente, reconstruye la imagen, súbela a ECR y aplica los cambios con Terraform.
+
+  ```bash
+  # 1. Construye la nueva imagen Docker
+  docker build -t proyecto1-ec2 .
+
+  # 2. Etiqueta la imagen para tu repositorio ECR
+  # (Reemplaza YOUR_ECR_REPO_URL con la URL de tu repo)
+  docker tag proyecto1-ec2:latest YOUR_ECR_REPO_URL:latest
+
+  # 3. Sube la imagen a ECR
+  docker push YOUR_ECR_REPO_URL:latest
+
+  # 4. Aplica los cambios de infraestructura (si los hay)
+  terraform apply --auto-approve
+  ```
 ]
 
 #linear.section-slide[En conclusión... 😮‍💨]
