@@ -1698,20 +1698,23 @@
 
 #linear.slide(
   title: [TLDR],
-  subtitle: [¿Qué hicimos?],
+  subtitle: [¿Qué aprendimos en estas dos horas?],
 )[
-  En este workshop desplegaste:
+  En este workshop desplegaste una aplicación Django en la nube [☁️]:
 
-  - Un proyecto Django en producción
-  - Dockerizado y versionado en ECR
-  - Corriendo en EC2 con infraestructura como código (Terraform)
-  - Conectado a una base de datos PostgreSQL gestionada (RDS)
+  - La aplicación está dockerizada y versionado en ECR
+  - La aplicación está corriendo en EC2 con infraestructura como código (Terraform)
+  - La aplicación está conectada a una base de datos PostgreSQL gestionada (RDS)
   - Conectado a Amazon Cloudwatch para monitoreo
 
-  #linear.callout(title: [¡Felicidades!])[
-    Todo usando el tier gratuito de AWS.
-  ]
+  #linear.callout()[
+      *Logro desbloqueado* 🏆: Has desplegado un stack de producción real. Repetible, versionable y sin un solo clic en la consola de AWS.
+    ]
 ]
+
+#linear.image-slide(
+  image("img/final-architecture.png", fit: "contain")
+)
 
 #linear.slide(
   title: [Recursos adicionales],
