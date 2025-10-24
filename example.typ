@@ -513,8 +513,8 @@
   - Que tu compañero de trabajo configure su entorno
   - Documentar qué hiciste exactamente para que puedas replicar el proceso
 
-  #linear.callout(title: [Lo que probablemente termine pasando es que:])[
-    Olvidaste qué hiciste en el paso 23. Y tu compañero va a terminar configurando algo diferente.
+  #linear.callout[
+    Lo más probable es que hayas olvidado qué hiciste en el paso 23. Tu compañero de trabajo configurará algo distinto y, sin darse cuenta, generará inconsistencias o errores difíciles de detectar y corregir (technical debt).
   ]
 ]
 
@@ -544,127 +544,123 @@
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Flujo de trabajo],
+  subtitle: [Tu flujo de trabajo al final del workshop],
 )[
-  // #image("flow-diagram.png", width: 100%)
-
-  *Nuestro objetivo final:*
-
-  1. Hacer que Django pase de correr localmente a estar dentro de un contenedor Docker.
-  2. Crear la imagen Docker y subirla a AWS ECR.
-  3. Usar Terraform para levantar un servidor EC2 que descargue y ejecute tu imagen.
-  4. Resultado: tu aplicación estará disponible desde una IP pública.
-
-  #v(1em)
-
-  #linear.callout(title: [Lo que automatizaremos])[
-    Todo el paso 3: red, permisos, servidor y deployment automático
+  #set enum(spacing: 1em)
+  #align(center)[
+    #figure(
+      image("img/flow-diagram.png", width: 50%),
+    )
   ]
+
+  *Nuestro objetivo final es:*
+
+  1. Migrar Django de ejecución local [ver pág. 11] a un contenedor Docker (algunos lo llaman dockerizar)
+  2. Crear la imagen Docker y subirla a AWS ECR (Elastic Container Registry) [ver pág. 22]
+  3. Utilizar Terraform para implementar un servidor EC2 que descargue y ejecute tu imagen (en esta sección veremos cómo hacerlo)
+  4. Tu aplicación estará disponible a través de una IP pública (podrás acceder a ella desde tu navegador)
 ]
 
 #linear.slide(
   title: [Terraform],
   subtitle: [Componentes de AWS],
 )[
-  Para desplegar Django en AWS necesitamos "construir el edificio". Explicar a fondo cómo funciona Terraform está fuera del alcance de este workshop, pero para darte una idea, podemos usar estas analogías:
+  Desplegar (deploy) significa crear la infraestructura donde se alojará tu aplicación. No entraremos en demasiados detalles de cómo funciona Terraform, pero podemos verlo como una analogía a la construcción de un edificio. No puedes construir sin terreno; en AWS pasa lo mismo. El proceso va así:
 
+  #v(0.5em)
   #linear.two-columns(
     split: 50%,
     [
-      *VPC (Virtual Private Cloud)*
-
+      *VPC (Virtual Private Cloud)* [1]
+      #v(0.25em)
       Tu terreno delimitado en AWS. Todo vive aquí dentro.
 
       #v(1em)
 
-      *Subnets*
-
-      Divisiones dentro del terreno para organizar recursos.
+      *Subnets* [2]
+      #v(0.25em)
+      Zonas (divisiones) dentro de la VPC (terreno) para organizar recursos.
 
       #v(1em)
 
-      *Internet Gateway*
-
+      *Internet Gateway* [3]
+      #v(0.25em)
       La puerta de entrada que conecta tu edificio con internet.
     ],
     [
-      *Route Tables*
-
-      Señalética que indica cómo mover el tráfico.
-
-      #v(1em)
-
-      *Security Groups*
-
-      Guardias de seguridad: quién puede entrar y por dónde.
+      *Route Tables* [4]
+      #v(0.25em)
+      Definen las rutas del tráfico dentro de la red.
 
       #v(1em)
 
-      *EC2 Instance*
+      *Security Groups* [5]
+      #v(0.25em)
+      Puedes verlo como guardias de seguridad que controlan quién puede entrar y por dónde.
 
-      El servidor donde corre tu aplicación Django.
+      #v(1em)
+
+      *EC2 Instance* [6]
+      #v(0.25em)
+      El servidor donde corre tu aplicación. En este caso, Django.
     ],
   )
 
   #v(1em)
 
-  Terraform creará todo esto automáticamente siguiendo el orden correcto.
+  Terraform creará todo esto automáticamente siguiendo el orden correcto [1, 2, 3, 4, 5, 6].
+]
+
+#linear.focus-slide[
+  Suficiente para empezar a ver código...
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [VPC y el internet gateway],
+  subtitle: [AWS: VPC [1]],
 )[
-  #linear.two-columns(
-    split: 50%,
-    [
-      Primero, le decimos a Terraform que usaremos AWS:
+  Primero, tenemos que indicar a Terraform que utilizaremos AWS como proveedor:
 
-      ```hcl
-      provider "aws" {
-        region = "us-east-1"
+  #block(width: 50%)[
+    ```hcl
+    provider "aws" {
+      region = "us-east-2"
+    }
+
+    resource "aws_vpc" "default" {
+      cidr_block = "10.0.0.0/16"
+      enable_dns_support   = true
+      enable_dns_hostnames = true
+
+      tags = { Name = "Django_VPC" }
+    }
+    ```
+  ]
+
+  En el segundo bloque, definimos nuestra *red privada* (VPC). La opción `enable_dns_support` activa la resolución de nombres dentro de la VPC, mientras que `enable_dns_hostnames` permite asignar nombres DNS internos a las instancias, de modo que podamos referirnos a ellas con nombres como `db.internal` en lugar de direcciones IP (mucho más fácil de recordar).
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [AWS: Internet Gateway [2]],
+)[
+  Luego, necesitamos crear un Internet Gateway para permitir que los recursos dentro de nuestra VPC tengan acceso a internet (por ejemplo, para actualizar paquetes o exponer una app web):
+
+  #block(width: 50%)[
+    ```hcl
+    resource "aws_internet_gateway" "default" {
+      vpc_id = aws_vpc.default.id
+
+      tags = {
+        Name = "Django_IGW"
       }
-      ```
+    }
+    ```
+  ]
 
-      #v(1em)
+  #v(1em)
 
-      Luego creamos nuestra red privada (VPC):
-
-      ```hcl
-      resource "aws_vpc" "default" {
-        cidr_block = "10.0.0.0/16"
-        enable_dns_hostnames = true
-        tags = { Name = "Django_VPC" }
-      }
-      ```
-
-      *¿Qué significa?*
-
-      Tenemos 65,536 IPs disponibles para nuestros recursos.
-    ],
-    [
-      Y conectamos con internet:
-
-      ```hcl
-      resource "aws_internet_gateway" "default" {
-        vpc_id = aws_vpc.default.id
-        tags = { Name = "Django_IGW" }
-      }
-      ```
-
-      #v(1em)
-
-      *Un detalle:* `aws_vpc.default.id`
-
-      Terraform entiende las dependencias. No puedes crear el gateway sin VPC primero.
-
-      #v(1em)
-
-      #linear.callout(title: [DNS habilitado])[
-        `enable_dns_hostnames = true` permite usar nombres como `mi-db.internal` en vez de IPs
-      ]
-    ],
-  )
+  Ojito a `aws_vpc.default.id`. Terraform entiende las dependencias. No puedes crear el gateway sin VPC primero.
 ]
 
 #linear.slide(
