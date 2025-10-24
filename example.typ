@@ -1,5 +1,4 @@
 #import "linear/main.typ" as linear
-#import "@preview/fletcher:0.5.8" as fletcher: diagram, edge, node
 
 #show: linear.theme.with(aspect-ratio: "16-9")
 
