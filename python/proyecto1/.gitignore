@@ -1,0 +1,11 @@
+# Terraform state and config
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+
+# python venv and cache
+__pycache__/
+venv/
+.env
