@@ -642,7 +642,7 @@
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [AWS: Internet Gateway [2]],
+  subtitle: [AWS: Internet Gateway [3]],
 )[
   Luego, necesitamos crear un Internet Gateway para permitir que los recursos dentro de nuestra VPC tengan acceso a internet (por ejemplo, para actualizar paquetes o exponer una app web):
 
@@ -665,40 +665,56 @@
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Subnets y enrutamiento],
+  subtitle: [AWS: Subnets [2]],
 )[
   Creamos una subnet pública (accesible desde internet):
   ```hcl
   resource "aws_subnet" "public" {
     vpc_id                  = aws_vpc.default.id
     cidr_block              = "10.0.1.0/24"
-    availability_zone       = "us-east-2"
-    map_public_ip_on_launch = true  # Cada instancia recibe IP pública automáticamente
-    tags = { Name = "Django_Public_Subnet" }
-  }
-  ```
+    availability_zone       = "us-east-2a"
 
-  Y configuramos la ruta de salida a internet:
-  ```hcl
-  resource "aws_route_table" "public" {
-    vpc_id = aws_vpc.default.id
-    route {
-      cidr_block = "0.0.0.0/0"  # Cualquier IP externa
-      gateway_id = aws_internet_gateway.default.id  # Va por el gateway
+    map_public_ip_on_launch = true  # Cada instancia recibe IP pública automáticamente
+
+    tags = {
+      Name = "Django_Public_Subnet"
     }
   }
   ```
-
-  Traducción: "Si el destino NO está en mi VPC (10.0.0.0/16), envíalo a internet"
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Security groups: ingress],
+  subtitle: [AWS: Route Tables [4]],
 )[
+  Luego configuramos la tabla de rutas para que la subnet pública tenga salida a internet:
+
   ```hcl
-  resource "aws_security_group" "django" {
-    name   = "django_sg"
+  resource "aws_route_table" "public" {
+    vpc_id = aws_vpc.default.id
+
+    route {
+      cidr_block = "0.0.0.0/0"                      # Todo tráfico externo
+      gateway_id = aws_internet_gateway.default.id  # Sale por el IGW (Gateway)
+    }
+
+    tags = {
+      Name = "Django_Route_Table"
+    }
+  }
+  ```
+
+  Traducción: "Si el destino NO está dentro de la VPC (10.0.0.0/16), envíalo a internet"
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [AWS: Security Groups [5] (ingress)],
+)[
+  Creamos un grupo de seguridad que define qué tráfico entra a nuestras instancias EC2 dentro de la VPC:
+
+  ```hcl
+  resource "aws_security_group" "ec2_sg" {
     vpc_id = aws_vpc.default.id
 
     # Permitir tráfico HTTP desde cualquier lugar
@@ -708,46 +724,45 @@
       protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     }
-    # Permitir SSH solo para administración (opcional)
-    ingress {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]  # En producción: tu IP específica
-    }
   }
   ```
+
+  También es posible definir una regla para permitir que nos conectemos a la instancia a través de SSH desde nuestra IP pública.
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Security groups: egress],
+  subtitle: [AWS: Security Groups [5] (egress)],
 )[
+  Ahora definimos las reglas de salida (egress), que controlan el tráfico desde nuestras instancias hacia otros destinos (por ejemplo, internet):
+
   ```hcl
   resource "aws_security_group" "ec2_sg" {
-    name   = "django_ec2_sg"
     vpc_id = aws_vpc.default.id
 
-    # Permite tráfico de salida para descarga de paquetes u otros recursos necesarios
     egress {
       from_port   = 0
-      to_port     = 0
-      protocol    = "-1"
-      cidr_blocks = ["0.0.0.0/0"]
+      to_port     = 65535
+      protocol    = "-1"              # Todos los protocolos
+      cidr_blocks = ["0.0.0.0/0"]     # Cualquier destino en la red
     }
   }
   ```
+
+  Aquí se muestran `ingress` y `egress` por separado para mayor claridad, pero en la práctica ambas reglas se definen dentro del mismo recurso.
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Roles IAM para EC2],
+  subtitle: [AWS: EC2 Instance [6] (roles IAM)],
 )[
-  El servidor necesita permisos IAM para descargar la imagen Docker desde ECR. Este recurso crea un rol IAM (`aws_iam_role`) que EC2 puede asumir, otorgándole permisos temporales según sea necesario.
+  Nuestra instancia EC2 necesita permisos para descargar imágenes Docker desde ECR (ver pag. 35). Para ello, creamos un rol IAM ( `aws_iam_role`) que la instancia puede asumir.
+  Este rol otorga credenciales temporales con los permisos necesarios.
 
   ```hcl
   resource "aws_iam_role" "ec2_ecr" {
     name = "ec2_ecr_access"
+
     assume_role_policy = jsonencode({
       Version = "2012-10-17"
       Statement = [{
@@ -763,14 +778,9 @@
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Políticas y perfil de EC2],
+  subtitle: [AWS: EC2 Instance [6] (políticas y perfil)],
 )[
-  Se adjunta la política de solo lectura a ECR y se crea un perfil de instancia para EC2.
-
-  *Qué hace cada recurso:*
-
-  - `aws_iam_role_policy_attachment`: da permisos de solo lectura a ECR.
-  - `aws_iam_instance_profile`: permite que la EC2 use el rol creado.
+  Ahora adjuntamos una política de solo lectura en ECR al rol y creamos un perfil de instancia que EC2 utilizará al iniciarse.
 
   ```hcl
   resource "aws_iam_role_policy_attachment" "ecr_read" {
@@ -783,16 +793,24 @@
     role = aws_iam_role.ec2_ecr.name
   }
   ```
+
+  *Qué hace cada recurso:*
+
+  `aws_iam_role_policy_attachment`: da permisos de solo lectura a ECR (permisos mínimos para mayor seguridad).
+
+  `aws_iam_instance_profile`: permite que la instancia EC2 use el rol creado en el paso anterior.
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Servidor EC2],
+  subtitle: [AWS: EC2 Instance [6] (creación - parte 1)],
 )[
+  Finalmente, creamos la instancia EC2 donde se ejecutará nuestra aplicación Django:
+
   ```hcl
   resource "aws_instance" "django" {
-    ami                    = "ami-0c101f26f147fa7fd"  # Amazon Linux 2023
-    instance_type          = "t3.micro"                # Free tier (1GB RAM, 2 vCPUs)
+    ami                    = "ami-0c101f26f147fa7fd"    # Amazon Linux 2023
+    instance_type          = "t3.micro"                 # (1GB RAM, 2 vCPUs)
     subnet_id              = aws_subnet.public.id
     vpc_security_group_ids = [aws_security_group.django.id]
     iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
@@ -801,16 +819,20 @@
       # Aquí va el script que se ejecuta al iniciar la instancia
     EOF
 
-    tags = { Name = "Django_Server" }
+    tags = {
+      Name = "Django_Server"
+    }
   }
   ```
+
+  Esta instancia utilizará el rol IAM configurado para obtener acceso de solo lectura a ECR.
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [User Data script],
+  subtitle: [AWS: EC2 Instance [6] (creación - parte 2)],
 )[
-  Este script se ejecuta UNA VEZ cuando la instancia inicia:
+  Este script se ejecuta UNA VEZ cuando la instancia inicia (user_data):
 
   ```bash
   #!/bin/bash
@@ -829,10 +851,23 @@
   docker pull YOUR_ECR_REGISTRY_URL/django-app:latest
   docker run -d -p 80:8080 --restart unless-stopped -e SECRET_KEY=${var.secret_key} YOUR_ECR_REGISTRY_URL/django-app:latest
   ```
+]
 
-  #linear.callout(title: [Mapeo de puertos])[
-    `-p 80:8080` expone puerto 8080 del contenedor en el puerto 80 del host
-  ]
+#linear.focus-slide[
+  No memorices el proceso. Los archivos .tf estarán en el repositorio 🐧
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [AWS: En resumen...],
+)[
+  Repasando una última vez, acabas de definir la infraestructura AWS para desplegar tu aplicación Django containerizada. La infra quedaría así:
+
+  *Redes*: Un VPC con DNS interno habilitado. Subred pública en zona `us-east-2a` con auto-asignación de IPs públicas. Internet Gateway conecta la VPC a internet, y el route table dirige todo el tráfico no-local ( `0.0.0.0/0`) hacia el IGW (Internet Gateway).
+
+  *Seguridad*: Security group actúa como firewall permitiendo tráfico HTTP entrante (puerto 80) desde cualquier origen y salida completa para descargas y conexiones externas. Rol IAM con política `AmazonEC2ContainerRegistryReadOnly` permite acceso a ECR sin credenciales hardcodeadas, asociado vía instance profile.
+
+  *Servidor*: Tipo `t3.micro` basada en Amazon Linux 2023 ( `ami-0c101f26f147fa7fd`). Script `user_data` ejecuta al inicio e instala Docker, autentica contra ECR usando el rol IAM, y levanta el contenedor Django automáticamente.
 ]
 
 #linear.slide(
