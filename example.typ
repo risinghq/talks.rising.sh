@@ -495,6 +495,10 @@
     #figure(image("img/aws-ecr.png", width: 70%))
 ]
 
+#linear.focus-slide(text-size: 25pt)[
+  A continuación, configuraremos un servidor en AWS, descargaremos la imagen y verificaremos que el proyecto Django se ejecute al acceder a la dirección IP del servidor... Pero antes...
+]
+
 #linear.section-slide[Herramienta \#2: Terraform]
 
 #linear.slide(
@@ -1134,6 +1138,12 @@
   title: [Terraform],
   subtitle: [Flujo de trabajo],
 )[
+  Habiendo entendido cómo manejar secretos y cómo funciona AWS en conjunto a Terraform. Podemos empezar a crear nuestra infraestructura.
+
+  #linear.callout[
+    Recuerda que no es necesario copiar los comandos que vimos en las diapositivas anteriores ya que tendrás acceso a un repositorio con el proyecto en Django + Terraform listos.
+  ]
+
   Prepara el directorio y descarga los providers de AWS (solo la primera vez):
   ```bash
   terraform init

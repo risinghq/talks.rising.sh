@@ -164,12 +164,16 @@
   body,
   background: colors.bg,
   foreground: colors.fg,
+  text-size: sizes.hero,
+  max-width: 80%,
 ) = {
   set page(fill: background, margin: 0pt)
   page({
     set align(center + horizon)
-    set text(size: sizes.hero, weight: 600, fill: foreground)
-    body
+    box(width: max-width, {
+      set text(size: text-size, weight: 600, fill: foreground)
+      body
+    })
   })
 }
 
