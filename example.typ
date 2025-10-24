@@ -501,43 +501,44 @@
   title: [Terraform],
   subtitle: [¿Por qué lo vamos a usar?],
 )[
-  Imagina que configuraste tu aplicación Django manualmente en AWS:
+  Imagina que configuraste tu aplicación Django _manualmente_ en AWS:
 
   - Hiciste clic en 47 botones diferentes en la consola
   - Configuraste redes, subnets, security groups...
-  - Todo funcionó perfectamente ✓
+  - Todo funcionó perfectamente
 
-  *Pero ahora necesitas:*
+  Genial, *pero ahora necesitas:*
+
   - Replicarlo en producción (a escala, es decir, en múltiples regiones, cuentas e instancias)
-  - Que tu compañero configure su entorno
-  - Documentar qué hiciste exactamente
+  - Que tu compañero de trabajo configure su entorno
+  - Documentar qué hiciste exactamente para que puedas replicar el proceso
 
-  #linear.callout(title: [La realidad])[
-    Probablemente olvidaste qué hiciste en el paso 23. Y tu compañero va a configurar algo diferente.
+  #linear.callout(title: [Lo que probablemente termine pasando es que:])[
+    Olvidaste qué hiciste en el paso 23. Y tu compañero va a terminar configurando algo diferente.
   ]
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [La solución],
+  subtitle: [La solución es Infraestructura como Código (IaC)],
 )[
-  Terraform te permite escribir tu infraestructura como código:
+  Terraform te permite definir y gestionar tu infraestructura mediante archivos *.tf*. Un ejemplo mínimo:
 
   ```hcl
   resource "aws_instance" "web" {
-    ami           = "ami-0c101f26f147fa7fd"
-    instance_type = "t3.micro"
+    ami           = "ami-0c101f26f147fa7fd"   // ID de la imagen de Amazon Linux 2023
+    instance_type = "t3.micro"                // 1GB RAM, 2 vCPUs
   }
   ```
 
   *Ventajas:*
-  - El mismo código = la misma infraestructura (siempre). Sin importar el proveedor (AWS, Google Cloud)
-  - Versionado con Git (sabes qué cambió y cuándo, útil en caso de bugs)
-  - Replicable en segundos (no en 47 clics)
-  - Auto-documentado (el código ES la documentación)
+  - El mismo código genera el mismo resultado en AWS, Google Cloud, Azure, etc.
+  - Versionado con Git (puedes ver qué cambió, cuándo y por qué; útil en caso de bugs o rollbacks).
+  - Infraestructura replicable en segundos (no en 435345 clics) usando comandos como `terraform apply`
+  - El código ES la documentación
 
-  #linear.callout(title: [Instalación])[
-    Descarga desde: #link("https://developer.hashicorp.com/terraform/install-cli")[developer.hashicorp.com/terraform/install-cli]
+  #linear.callout(title: [Descarga e instalación])[
+    https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli#install-terraform
   ]
 ]
 
@@ -548,6 +549,7 @@
   // #image("flow-diagram.png", width: 100%)
 
   *Nuestro objetivo final:*
+
   1. Hacer que Django pase de correr localmente a estar dentro de un contenedor Docker.
   2. Crear la imagen Docker y subirla a AWS ECR.
   3. Usar Terraform para levantar un servidor EC2 que descargue y ejecute tu imagen.
