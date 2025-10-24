@@ -7,7 +7,8 @@ docker-cli = "28.5.1"
 terraform = "1.13.4"
 gh = "2.82.1"
 
-# Development tasks
+# Font & formatting tasks
+
 [tasks.fonts]
 description = "Convert variable fonts to static fonts for Typst"
 alias = "fonts"
@@ -22,6 +23,8 @@ run = "typstyle -i ."
 description = "Check formatting without modifying files"
 run = "typstyle --check ."
 
+# Compilation & watching tasks
+
 [tasks.compile]
 description = "Compile Typst document to PDF"
 alias = "c"
@@ -35,7 +38,7 @@ run = [
 ]
 
 [tasks.watch]
-description = "Watch and auto-compile on changes"
+description = "Watch and auto-compile on changes (PDF)"
 alias = "w"
 run = "typst watch --font-path fonts example.typ"
 
@@ -45,6 +48,8 @@ alias = "wh"
 run = [
   "typst watch --features html --font-path fonts --format html --port 3000 example.typ example.html",
 ]
+
+# Development & live preview
 
 [tasks.dev]
 description = "Development mode with file watching (PDF)"
@@ -59,6 +64,7 @@ run = [
 ]
 
 # Package management
+
 [tasks.pkg-install]
 description = "Install linear package to local Typst packages"
 alias = "install"
@@ -69,7 +75,8 @@ description = "Uninstall linear package from local Typst packages"
 alias = "uninstall"
 run = "pwsh scripts/uninstall-local-pkg.ps1"
 
-# Utility tasks
+# Utility & CI tasks
+
 [tasks.clean]
 description = "Remove generated PDF and HTML files"
 run = [
@@ -79,6 +86,12 @@ run = [
   "rm -f example.html",
 ]
 
+[tasks.export]
+description = "Export requirements.txt for the Python examples"
+run = [
+  "cd python && uv export --format requirements-txt --no-hashes --no-header --no-dev --no-annotate --output-file requirements.txt",
+]
+
 [tasks.check]
 description = "Run all checks (format, compile)"
 depends = ["format-check", "compile"]
@@ -86,9 +99,3 @@ depends = ["format-check", "compile"]
 [tasks.ci]
 description = "Run continuous integration checks"
 run = ["mise run format-check", "mise run compile"]
-
-[tasks.export]
-description = "Export requirements.txt for the Python examples"
-run = [
-  "cd python &&uv export --format requirements-txt --no-hashes --no-header --no-dev --no-annotate --output-file requirements.txt",
-]
