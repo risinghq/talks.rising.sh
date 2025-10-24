@@ -870,49 +870,264 @@
   *Servidor*: Tipo `t3.micro` basada en Amazon Linux 2023 ( `ami-0c101f26f147fa7fd`). Script `user_data` ejecuta al inicio e instala Docker, autentica contra ECR usando el rol IAM, y levanta el contenedor Django automáticamente.
 ]
 
+#linear.focus-slide[
+  La seguridad es importante.
+]
+
 #linear.slide(
   title: [Terraform],
-  subtitle: [Variables de entorno],
+  subtitle: [Variables de entorno y secretos],
 )[
-  Nunca pongas secretos en el código:
+  Cuando trabajamos con Terraform, tarde o temprano necesitamos usar credenciales sensibles (conocidas como secrets). Estas pueden ser contraseñas de base de datos, tokens de API o claves de acceso a AWS.
 
-  #linear.two-columns(
-    split: 50%,
-    [
-      *variables.tf*
+  Escribir tus credenciales directamente en el código es una mala práctica:
 
-      ```hcl
-      variable "secret_key" {
-        description = "Django SECRET_KEY"
-        type        = string
-        sensitive   = true  # Oculto en logs
-      }
+  ```hcl
+  resource "aws_db_instance" "mydb" {
+      engine         = "postgres"
+      instance_class = "db.t3.micro"
 
-      variable "ecr_registry" {
-        description = "ECR Registry URL"
-        type        = string
-      }
-      ```
-    ],
-    [
-      *terraform.tfvars* (no commitear)
+      # 🚨 atención aquí:
+      username       = "root"
+      password       = "password123"
+  }
+  ```
 
-      ```hcl
-      secret_key   = "tu-clave-super-secreta-aquí"
-      ecr_registry = "123456.dkr.ecr.us-east-1.amazonaws.com"
-      ```
-      #v(1em)
-      *`.gitignore`*
+  *Esto es inseguro*. Las credenciales quedarían expuestas en el código, en el `terraform.tfstate` y potencialmente en el historial de Git.
+  Incluso si el repositorio es privado, una filtración o acceso local comprometería toda la infraestructura.
+]
 
-      ```
-      terraform.tfvars
-      *.tfstate
-      *.tfstate.backup
-      ```
-    ],
-  )
+#linear.slide(
+  title: [Terraform],
+  subtitle: [Variables sensibles en Terraform],
+)[
+  Terraform permite declarar variables marcadas como *sensitive*, evitando que sus valores aparezcan en logs o salidas de comandos.
 
-  Uso: `${var.secret_key}` en cualquier parte del código.
+  ```hcl
+  variable "username" {
+    type        = string
+    sensitive   = true
+  }
+
+  variable "password" {
+    type        = string
+    sensitive   = true
+  }
+  ```
+
+  En lugar de valores literales, ahora usamos las referencias `var.username` y `var.password` dentro del recurso:
+
+  ```hcl
+  username = var.username
+  password = var.password
+  ```
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [Usando variables de entorno],
+)[
+  Una forma simple es usar variables de entorno con el prefijo `TF_VAR_`. Terraform las detecta automáticamente.
+
+  ```bash
+  export TF_VAR_username="admin"
+  export TF_VAR_password="supersecret"
+  terraform apply
+  ```
+
+  En Windows (PowerShell):
+
+  ```powershell
+  Set-Item -Path env:TF_VAR_username -Value "admin"
+  Set-Item -Path env:TF_VAR_password -Value "supersecret"
+  ```
+
+  Ahora, cuando ejecutes `terraform apply`, terraform leerá las variables de entorno `TF_VAR_username` y `TF_VAR_password` y usará sus valores respectivos.
+
+  Este método evita incluir los valores en el código, pero no es completamente seguro ya que
+  los valores quedarán *registrados en el historial* de la terminal o visibles a otros procesos del ordenador que uses.
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [Usando archivos .tfvars locales],
+)[
+  Otra práctica habitual es crear un archivo `terraform.tfvars` con las variables reales:
+
+  ```hcl
+  username = "admin"
+  password = "password123"
+  ```
+
+  Como este archivo no debe subirse al repositorio. Simplemente lo agregamos al `.gitignore`:
+
+  ```
+  terraform.tfvars
+  *.tfstate
+  *.tfstate.backup
+  ```
+
+  Es una opción simple y práctica para entornos locales o de desarrollo. Sin embargo, si trabajas en equipo, cada miembro debe gestionar su propio archivo y asegurarse de mantenerlo fuera del control de versiones. Además de que *no soluciona* los problemas que mencionamos antes (un proceso malicioso en tu ordenador podría leer tus secretos).
+]
+
+#linear.focus-slide[
+  Todo eso se ve complicado, ¿AWS ofrece alguna forma de gestionar los secretos?
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [AWS KMS (cifrado)],
+)[
+  Para entornos empresariales, se recomienda utilizar *AWS Key Management Service (KMS)* para el cifrado de secretos y datos sensibles. KMS permite gestionar claves de cifrado de forma centralizada y segura en AWS.
+
+  Este servicio tiene un costo aproximado de \$1 USD mensual por clave KMS.
+
+  Para usarlo, dirígete a https://us-east-2.console.aws.amazon.com/kms/home?region=us-east-2#/kms/home.
+
+  En el panel, sigue estos pasos:
+
+  #set enum(spacing: 1em)
+  1. Selecciona "Create key"
+  2. Configura la clave eligiendo "Symmetric" como _key type_ y "Encrypt and decrypt" como _key usage_
+  3. Haz clic en "Next"
+
+  #align(center)[
+    #figure(
+      image("img/aws-kms-1.png", width: 80%),
+    )
+  ]
+
+  Asigna un nombre que te sirva para identificar a tu clave. En este ejemplo, utilizaremos "key-aws".
+
+  #align(center)[
+    #figure(
+      image("img/aws-kms-2.png", width: 76%),
+    )
+  ]
+
+  #align(center)[
+    #figure(
+      image("img/aws-kms-3.png", width: 76%),
+    )
+  ]
+
+  En este paso, asegúrate de seleccionar el mismo usuario que creamos en la pag. 27 para los permisos.
+
+  #align(center)[
+    #figure(
+      image("img/aws-kms-4.png", width: 76%),
+    )
+  ]
+
+  Guarda el ID de la clave generada por KMS. Este ID será necesario en los siguientes pasos.
+
+  == Cifrado de credenciales
+
+  Crea un archivo con las credenciales sensibles. En este caso, `db-creds.yml`:
+
+  #block(width: 60%)[
+    ```yml
+    username: root
+    password: password123
+    ```
+  ]
+
+  Utiliza AWS CLI para cifrar el archivo con la clave KMS creada:
+
+  #block(width: 60%)[
+    ```bash
+    aws kms encrypt \
+          --key-id <KEY_ID> \
+          --region us-east-2 \
+          --plaintext fileb://db-creds.yml \
+          --output text \
+          --query CiphertextBlob > db-creds.yml.enc
+    ```
+  ]
+
+  Reemplaza `<KEY_ID>` con el ID de tu clave KMS del paso anterior. Si utilizas un nombre diferente para el archivo YAML, actualiza el comando correspondientemente.
+
+  Tras ejecutar el comando, se generará el archivo cifrado `db-creds.yml.enc`. Este archivo puede compartirse de forma segura e incluso incluirse en los repositorios internos de tu empresa (¿recuerdas que añadimos archivos al .gitignore?).
+
+  == Integración de AWS KMS con Terraform
+
+  Para configurar Terraform y que descifre las credenciales durante `terraform apply`:
+
+  ```hcl
+  data "aws_kms_secrets" "creds" {
+    secret {
+      name    = "db"
+      payload = file("${path.module}/db-creds.yml.enc")
+    }
+  }
+
+  locals {
+    db_creds = jsondecode(
+      data.aws_kms_secrets.creds.secret[0].plaintext
+    )
+  }
+  ```
+
+  #colbreak()
+  Ahora podemos actualizar el recurso de Terraform (revisa la pág. 57) para utilizar las credenciales descifradas:
+
+  ```hcl
+  resource "aws_example_instance" "mydb" {
+    engine = "postgres"
+    instance_class = "db.t3.micro"
+
+    # Credenciales seguras mediante KMS:
+    username = local.db_creds.username
+    password = local.db_creds.password
+  }
+  ```
+
+  Durante la ejecución de `terraform apply`, Terraform utilizará KMS para descifrar las credenciales y provisionar los recursos correspondientes.
+
+  #linear.callout[
+    Un problema con este método es que no podrás modificar manualmente el archivo `db-creds.yml.enc`. Existen herramientas que permiten hacerlo, pero quedan fuera del alcance de este workshop (puedes buscar *sops* si te interesa). Con lo visto hasta ahora debería ser suficiente para entender, de forma general, cómo manejar este proceso.
+  ]
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [AWS Secrets Manager],
+)[
+  *AWS Secrets Manager* ofrece una alternativa completamente gestionada. Los secretos se almacenan cifrados, pueden rotarse automáticamente y Terraform puede leerlos como datos:
+
+  ```hcl
+  data "aws_secretsmanager_secret_version" "creds" {
+    secret_id = "db-creds"
+  }
+  locals {
+    db_creds = jsondecode(data.aws_secretsmanager_secret_version.creds.secret_string)
+  }
+  ```
+
+  Para crear un nuevo secreto, dirígete a la consola de AWS y busca "Secrets Manager". O haz click #link("https://us-east-2.console.aws.amazon.com/secretsmanager/newsecret?region=us-east-2")[aquí].
+
+  Al momento de seleccionar el tipo de secreto, escoge "Other type of secret" y escribe:
+
+  ```json
+  {
+    "username": "root",
+    "password": "password123"
+  }
+  ```
+
+  #align(center)[
+    #figure(
+      image("img/aws-sm-1.png", width: 80%),
+    )
+  ]
+
+  #align(center)[
+    #figure(
+      image("img/aws-sm-2.png", width: 76%),
+    )
+  ]
+
+  Asigna un nombre que te sirva para identificar a tu secreto. En este ejemplo, utilizaremos "db-creds".
 ]
 
 #linear.slide(
