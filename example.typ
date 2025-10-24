@@ -228,14 +228,15 @@
   # Carpeta de trabajo dentro del contenedor
   WORKDIR /app
 
-  # Copia todo el contenido de la carpeta "proyecto1" (directorio actual)
-  # al directorio /app dentro del contenedor Docker.
-  COPY . /app/
+  COPY ./requirements.txt /app/
   # Instalar dependencias
-  RUN pip install --upgrade pip && pip install -r requirements.txt
+  RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-  CMD ["gunicorn", "proyecto1.wsgi:application", "--bind", "0.0.0.0:8080"]
+  # Copiar el proyecto
+  COPY ./proyecto1 /app
+
   EXPOSE ${PORT}
+  CMD ["gunicorn", "proyecto1.wsgi:application", "--bind", "0.0.0.0:8080"]
   ```
 
   Cada línea es una capa. Docker cachea cada capa para acelerar los siguientes builds.
