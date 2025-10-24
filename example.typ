@@ -1211,6 +1211,320 @@
   Mmmm... veo un error al acceder 🤔
 ]
 
+#linear.image-slide[
+  pendiente
+]
+
+#linear.slide(
+  title: [Django],
+  subtitle: [DisallowedHost],
+)[
+  Este error es causado por una medida de seguridad de Django. Ocurre porque, por defecto, Django solo permite peticiones desde localhost. Al acceder desde una IP pública, Django la rechaza.
+
+  *La solución* consiste en indicar explícitamente qué dominios o IPs pueden acceder a nuestra aplicación.
+
+  #set enum(spacing: 1em)
+  1. Abre el archivo `proyecto1/settings.py`.
+  2. Busca la línea ALLOWED_HOSTS.
+  3. Añade la IP pública de tu instancia EC2 entre comillas. Si quieres permitir cualquier host (no recomendado para producción), puedes usar un asterisco.
+
+    ```python
+    ALLOWED_HOSTS = ["XX.XXX.XX.XXX", "*"] # Escribe la IP pública de tu instancia EC2 aquí
+    ```
+
+  #linear.callout()[
+    *Importante*: Después de este cambio, necesitas reconstruir la imagen de Docker, subirla a ECR y volver a aplicar los cambios con `terraform apply` para que el servidor EC2 descargue la nueva versión de la imagen.
+  ]
+]
+
+#linear.section-slide[Herramienta \#3: AWS RDS]
+
+#linear.slide(
+  title: [AWS RDS],
+  subtitle: [De SQLite a PostgreSQL],
+)[
+  Hasta ahora, Django ha usado SQLite, una base de datos basada en un solo archivo. Funciona para desarrollo, pero *no es adecuada para producción*:
+
+  - No soporta alta concurrencia (varios usuarios al mismo tiempo).
+  - El archivo de la base de datos está dentro del contenedor, por lo que *se pierde si el contenedor se reinicia o reemplaza*.
+
+  *La solución* es usar un servicio de base de datos gestionado como Amazon RDS. Sus ventajas:
+
+  - Copias de seguridad, parches y posibilidad de escalar fácilmente.
+  - Funciona de forma independiente del servidor de la aplicación (EC2).
+  - Alta disponibilidad y durabilidad de los datos.
+
+  #set enum(spacing: 0.75em)
+  El plan consiste en:
+
+  1. Crear `database.tf` para definir una instancia PostgreSQL en RDS.
+  2. Actualizar `settings.py` para que Django se conecte a RDS.
+  3. Pasar las credenciales de la base de datos de forma segura al contenedor Docker.
+]
+
+#linear.slide(
+  title: [AWS RDS],
+  subtitle: [Terraform (subnet)],
+)[
+  Primero, crearemos el archivo `database.tf` y definiremos los componentes de red para el RDS.
+
+  RDS necesita un grupo de subnets que abarque al menos dos zonas de disponibilidad (_availability zones_) para alta disponibilidad.
+
+  ```hcl
+  resource "aws_db_subnet_group" "default" {
+    name       = "django-db-subnet-group"
+    subnet_ids = [
+      aws_subnet.public.id,       // subnet #1
+      aws_subnet.public_b.id,     // subnet #2
+    ]
+  }
+  ```
+
+  Luego, creamos un grupo de seguridad (_security group_) que solo permite conexiones entrantes en el puerto que usará PostgreSQL (5432):
+
+  ```hcl
+  resource "aws_security_group" "rds_sg" {
+    name   = "django-rds-sg"
+    vpc_id = aws_vpc.default.id
+
+    ingress {
+      from_port   = 5432
+      to_port     = 5432
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"] // Para desarrollo: acceso desde cualquier IP
+    }
+
+    egress {
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+  ```
+
+  #linear.callout()[
+    En producción, reemplaza `0.0.0.0/0` por la IP del servidor EC2 para mayor seguridad.
+  ]
+]
+
+#linear.slide(
+  title: [AWS RDS],
+  subtitle: [Terraform (instancia de la base de datos)],
+)[
+  Definimos nuestra instancia de PostgreSQL con Terraform usando `aws_db_instance`.
+
+  ```hcl
+    resource "aws_db_instance" "default" {
+      engine               = "postgres"
+      instance_class       = "db.t3.micro"
+      db_name              = "django_db"
+      username             = "admin"
+      password             = var.db_password
+      publicly_accessible  = true // Solo para migraciones desde local
+    }
+  ```
+
+  Algunos detalles que valen la pena mencionar:
+
+  - La instancia utilizará el *subnet group y security group* que creamos previamente.
+  - `publicly_accessible = true` permite ejecutar migraciones desde tu ordenador; en producción debe ser `false`.
+  - `db_password` debe manejarse como _secret_ (ver pág. 60).
+]
+
+#linear.slide(
+  title: [AWS RDS],
+  subtitle: [Conexión con Django],
+)[
+  Necesitamos actualizar `proyecto1/settings.py` para que lea la configuración de la base de datos desde variables de entorno. Esto evita escribir las credenciales en el código.
+
+  ```python
+  # ... otras configuraciones
+
+  DATABASES = {
+      "default": {
+          "ENGINE": "django.db.backends.postgresql",
+          "NAME": os.environ.get("DB_NAME"),
+          "USER": os.environ.get("DB_USER"),
+          "PASSWORD": os.environ.get("DB_PASSWORD"),
+          "HOST": os.environ.get("DB_HOST"),
+          "PORT": os.environ.get("DB_PORT"),
+      }
+  }
+  ```
+  Ahora, nuestro contenedor Django esperará que le pasemos estas 5 variables de entorno para poder conectarse a la base de datos.
+]
+
+#linear.slide(
+  title: [AWS RDS],
+  subtitle: [Actualizar script de inicio de la instancia EC2],
+)[
+  Modificamos el `user_data` en `main.tf` (revisar la pag. 53) para pasar las variables de entorno al contenedor Docker. Terraform permite obtener dinámicamente los valores de la instancia RDS recién creada.
+
+  ```hcl
+  user_data = <<-EOF
+  # ... (instalación de Docker y login a ECR) ...
+
+  docker run -d -p 80:8080 --restart unless-stopped \
+    -e SECRET_KEY=${var.secret_key} \
+    -e DB_NAME=${aws_db_instance.default.db_name} \
+    -e DB_USER=${aws_db_instance.default.username} \
+    -e DB_PASSWORD=${var.db_password} \
+    -e DB_HOST=${aws_db_instance.default.address} \
+    -e DB_PORT=${aws_db_instance.default.port} \
+    YOUR_ECR_REGISTRY_URL/django-app:latest
+  EOF
+  ```
+
+  `aws_db_instance.default.address` es el endpoint de la base de datos, obtenido automáticamente por Terraform una vez creada la instancia.
+]
+
+#linear.slide(
+  title: [AWS RDS],
+  subtitle: [Aplicar cambios y migrar],
+)[
+  Flujo de trabajo para desplegar la nueva configuración en AWS:
+
+  1. *Reconstruir y subir la imagen Docker* con `settings.py` actualizado:
+
+    ```bash
+    docker build -t proyecto1-ec2 .
+    docker tag ...
+    docker push ...
+    ```
+
+  2. *Aplicar los cambios de Terraform*. Esto creará la instancia RDS y actualizará EC2 para usar la nueva imagen con las variables de entorno correctas:
+
+    ```bash
+    export TF_VAR_db_password="ContraseñaSegura123"
+    terraform apply --auto-approve
+    ```
+
+    Este proceso puede tardar varios minutos mientras AWS provisiona la base de datos. Momento para darte un pequeño descanso o ir por un poco de aire fresco.
+
+  #colbreak()
+
+  3. *Ejecutar las migraciones de Django*. La base de datos RDS recién creada está vacía. Debemos conectarnos desde nuestra máquina local para crear las tablas iniciales.
+
+    Primero, para obtener fácilmente la dirección de la base de datos, añade este output al archivo `database.tf`:
+
+    ```hcl
+    output "db_endpoint" {
+      description = "Endpoint de la instancia de base de datos RDS"
+      value       = aws_db_instance.default.endpoint
+    }
+    ```
+
+    Ahora, después de `terraform apply`, verás el endpoint en la salida.
+
+    Configura tu entorno local con *todas* las credenciales y ejecuta las migraciones:
+
+    ```bash
+    # En tu terminal local, con el entorno virtual activado
+    export DB_HOST="<ENDPOINT_DE_RDS_AQUÍ>"     # Obtenido de la salida de Terraform
+    export DB_NAME="django_db"                  # El que definiste en database.tf
+    export DB_USER="admin"                      # El que definiste en database.tf
+    export DB_PORT="5432"                       # Puerto por defecto de PostgreSQL
+    export DB_PASSWORD="ContraseñaSegura123"    # La misma que usaste para 'terraform apply'
+    ```
+
+    Ahora sí, ejecuta los comandos de Django:
+    ```bash
+    python manage.py migrate
+    python manage.py createsuperuser
+    ```
+
+    Ahora, si te diriges a http://XX.XXX.XX.XXX/admin/login/, deberías ver la página de inicio de sesión de Django. Inicia sesión con el usuario creado anteriormente y la contraseña que definiste.
+]
+
+#linear.image-slide[
+  pendiente
+]
+
+#linear.focus-slide[
+  Lo logramos, ahora podemos tanto acceder como iniciar sesión en nuestro sitio web usando Django 🎉
+]
+
+#linear.section-slide[Herramienta \#4: Amazon Cloudwatch]
+
+#linear.slide(
+  title: [Cloudwatch],
+  subtitle: [¿Por qué centralizarlos?],
+)[
+  Por defecto, los logs de la aplicación (stdout y stderr) se guardan dentro del contenedor. Esto presenta varios problemas:
+
+  - Si el contenedor se detiene o reemplaza, los logs se pierden.
+  - Tendrías que conectarte manualmente por SSH y ejecutar `docker logs <id>`.
+  - Repetir esto en varios servidores se vuelve impráctico.
+
+  *La solución* es enviar los logs a un servicio centralizado, como *Amazon CloudWatch*.
+
+  #figure(
+    image("img/cloudwatch-diagram.png", width: 40%),
+  )
+]
+
+#linear.slide(
+  title: [Cloudwatch],
+  subtitle: [Configurar Docker y permisos IAM],
+)[
+  Podemos configurar Docker para enviar logs directamente a CloudWatch usando el log driver `awslogs`.
+
+  1. Actualizar la sección donde definimos "docker run" en el script `user_data` (este script se ejecuta al iniciar la instancia) dentro de `main.tf`:
+    ```bash
+    docker run -d -p 80:8080 --restart unless-stopped \
+      --log-driver=awslogs \
+      --log-opt awslogs-region=us-east-2 \
+      --log-opt awslogs-group="django-app-logs" \
+      --log-opt awslogs-create-group=true \
+      // ... resto de variables -e ...
+    ```
+
+  #colbreak()
+
+  2. Ahora, el servidor necesita permiso para escribir en CloudWatch. Creamos una política IAM y la adjuntamos al rol:
+    ```hcl
+    resource "aws_iam_policy" "cloudwatch_logs" {
+      name   = "EC2CloudWatchLogsPolicy"
+      policy = jsonencode({
+        Version   = "2012-10-17",
+        Statement = [{
+          Effect   = "Allow",
+          Action   = ["logs:CreateLogStream", "logs:PutLogEvents"],
+          Resource = "arn:aws:logs:*:*:*"
+        }]
+      })
+    }
+
+    resource "aws_iam_role_policy_attachment" "ec2_logs" {
+      role       = aws_iam_role.ec2_ecr.name
+      policy_arn = aws_iam_policy.cloudwatch_logs.arn
+    }
+    ```
+]
+
+#linear.slide(
+  title: [Cloudwatch],
+  subtitle: [Visualizar en la consola de AWS],
+)[
+  Después de aplicar los cambios con `terraform apply`, todos los `print()` y logs de errores de Django aparecerán en CloudWatch. Para verlos:
+
+  #set enum(spacing: 1em)
+  1. Ve a la consola de AWS y busca *Cloudwatch*.
+  2. En el menú izquierdo, selecciona *Logs > Log groups*.
+  3. Haz clic en el grupo de logs creado: `django-app-logs`.
+
+  #figure(
+    image("img/cloudwatch-logs.jpg", width: 40%),
+  )
+
+  Ahora puedes buscar errores, filtrar por fecha y configurar alarmas, todo desde un único lugar.
+]
+
+#linear.focus-slide[
+  Cloudwatch puede enviar alertas por SMS, email o incluso Slack/WhatsApp (requiere configuración extra) 🏄
+]
+
 #linear.slide(
   title: [Terraform],
   subtitle: [Destrucción de recursos],
@@ -1243,7 +1557,7 @@
   - Dockerizado y versionado en ECR
   - Corriendo en EC2 con infraestructura como código (Terraform)
   - Conectado a una base de datos PostgreSQL gestionada (RDS)
-  - Con dominio personalizado y HTTPS
+  - Conectado a Amazon Cloudwatch para monitoreo
 
   #linear.callout(title: [¡Felicidades!])[
     Todo usando el tier gratuito de AWS.
@@ -1264,6 +1578,6 @@
 ]
 
 #linear.qa-slide(
-  question: [¡Gracias!... ¿Preguntas?],
-  subtitle: [Siéntete libre de preguntar],
+  question: [¡Gracias!],
+  subtitle: [¿Preguntas? Siéntete libre de preguntar],
 )
