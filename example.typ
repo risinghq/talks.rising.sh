@@ -695,11 +695,11 @@
 
   ```hcl
   resource "aws_route_table" "public" {
-    vpc_id = aws_vpc.default.id
+    vpc_id = aws_vpc.default.id                     # Mismo ID que la VPC que creamos (pag. 45)
 
     route {
-      cidr_block = "0.0.0.0/0"                      # Todo tráfico externo
-      gateway_id = aws_internet_gateway.default.id  # Sale por el IGW (Gateway)
+      cidr_block = "0.0.0.0/0"                      # Tráfico a cualquier IP es permitido
+      gateway_id = aws_internet_gateway.default.id  # Sale por el Gateway que definimos (pag. 46)
     }
 
     tags = {
@@ -857,8 +857,12 @@
   ```
 ]
 
+#linear.focus-slide(text-size: 25pt)[
+  _¿Y si no uso Terraform?_ AWS tiene muchos componentes. Ya sea con Terraform o desde la consola, debes crear cada uno: red, VPC, gateway, subredes, grupos de seguridad, servidor y roles de IAM. Revisa e investiga cada parte para entender su función.
+]
+
 #linear.focus-slide[
-  No memorices el proceso. Los archivos .tf estarán en el repositorio 🐧
+  _Recomendación_: No memorices el proceso. Los archivos .tf estarán en el repositorio 🐧
 ]
 
 #linear.slide(
@@ -875,7 +879,7 @@
 ]
 
 #linear.focus-slide[
-  La seguridad es importante.
+  _Tangente_: La seguridad es importante.
 ]
 
 #linear.slide(
@@ -1138,30 +1142,37 @@
   title: [Terraform],
   subtitle: [Flujo de trabajo],
 )[
-  Habiendo entendido cómo manejar secretos y cómo funciona AWS en conjunto a Terraform. Podemos empezar a crear nuestra infraestructura.
+  Ahora que entendemos cómo manejar secretos y cómo interactúan AWS y Terraform, podemos comenzar a crear la infraestructura.
 
   #linear.callout[
-    Recuerda que no es necesario copiar los comandos que vimos en las diapositivas anteriores ya que tendrás acceso a un repositorio con el proyecto en Django + Terraform listos.
+    Recuerda que no es necesario copiar los comandos que vimos en las diapositivas anteriores ya que tendrás acceso a un repositorio con el proyecto Django + Terraform ya configurado.
   ]
 
-  Prepara el directorio y descarga los providers de AWS (solo la primera vez):
+  Inicializa el directorio y descarga los *providers* de AWS (solo la primera vez):
   ```bash
   terraform init
   ```
 
-  Para ver qué cambios se harán (sin aplicar), ejecuta:
+  Revisa los cambios que se aplicarán (sin ejecutarlos todavía):
   ```bash
   terraform plan
   ```
 
-  Para aplicar los cambios, ejecuta:
+  #colbreak()
+  Aplica los cambios y despliega la infraestructura:
   ```bash
   terraform apply
   ```
 
-  #linear.callout(title: [Estado])[
-    `terraform.tfstate` guarda el mapeo entre tu código y recursos reales. ¡Protégelo!
+  #linear.callout(title: [Secreto de estado:])[
+    El archivo `terraform.tfstate` guarda la relación entre tu código y los recursos reales. *Protégelo y no lo compartas.*
   ]
+  #v(0.25em)
+  Ahora puedes ir a cada componente dentro de la consola de AWS para verificar que los recursos se han creado correctamente. Algunos lugares que puedes revisar:
+  #v(0.25em)
+  - VPC: https://us-east-2.console.aws.amazon.com/vpcconsole/home?region=us-east-2#vpcs:
+  - Subnets: https://us-east-2.console.aws.amazon.com/vpcconsole/home?region=us-east-2#subnets:
+  - EC2: https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#Instances:instanceState=running
 ]
 
 #linear.slide(
