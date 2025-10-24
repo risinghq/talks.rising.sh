@@ -499,185 +499,238 @@
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [¿Por qué lo estamos usando?],
+  subtitle: [¿Por qué lo vamos a usar?],
 )[
-  Terraform es una herramienta de *Infrastructure as Code* (IaC) que permite definir y gestionar recursos mediante código declarativo.
+  Imagina que configuraste tu aplicación Django manualmente en AWS:
 
-  Ventajas sobre configuración manual en la consola de AWS:
-  #v(0.25em)
-  - El mismo código genera exactamente la misma infraestructura (instancias, recursos, servicios, etc)
-  - Despliega 1 o 100 instancias con el mismo esfuerzo
-  - Usa Git para rastrear cambios y revertir errores
-  - El código describe la infraestructura. No más `.txt` que describe cómo levantar la infra paso a paso
+  - Hiciste clic en 47 botones diferentes en la consola
+  - Configuraste redes, subnets, security groups...
+  - Todo funcionó perfectamente ✓
+
+  *Pero ahora necesitas:*
+  - Replicarlo en producción (a escala, es decir, en múltiples regiones, cuentas e instancias)
+  - Que tu compañero configure su entorno
+  - Documentar qué hiciste exactamente
+
+  #linear.callout(title: [La realidad])[
+    Probablemente olvidaste qué hiciste en el paso 23. Y tu compañero va a configurar algo diferente.
+  ]
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [La solución],
+)[
+  Terraform te permite escribir tu infraestructura como código:
+
+  ```hcl
+  resource "aws_instance" "web" {
+    ami           = "ami-0c101f26f147fa7fd"
+    instance_type = "t3.micro"
+  }
+  ```
+
+  *Ventajas:*
+  - El mismo código = la misma infraestructura (siempre). Sin importar el proveedor (AWS, Google Cloud)
+  - Versionado con Git (sabes qué cambió y cuándo, útil en caso de bugs)
+  - Replicable en segundos (no en 47 clics)
+  - Auto-documentado (el código ES la documentación)
 
   #linear.callout(title: [Instalación])[
-    Descarga el Terraform CLI desde: #link("https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli")[developer.hashicorp.com/terraform/install-cli]
+    Descarga desde: #link("https://developer.hashicorp.com/terraform/install-cli")[developer.hashicorp.com/terraform/install-cli]
   ]
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Conceptos de red en AWS],
+  subtitle: [Flujo de trabajo],
 )[
-  Antes de revisar el código, veamos una analogía para entender cómo funciona una VPC en AWS.
+  // #image("flow-diagram.png", width: 100%)
 
-  Piensa que vas a construir un edificio para tu aplicación web. Primero necesitas un terreno delimitado, eso es tu VPC: tu espacio privado en AWS. Dentro de ese terreno, divides el espacio en secciones o subnets para organizar mejor tus recursos. Luego instalas una puerta de entrada, el Internet Gateway, que conecta tu edificio con el mundo exterior. Para que la gente sepa cómo moverse, pones señalética o route tables que indican las rutas. Y finalmente, implementas un sistema de seguridad con security groups que controlan quién puede entrar y salir.
+  *Nuestro objetivo final:*
+  1. Hacer que Django pase de correr localmente a estar dentro de un contenedor Docker.
+  2. Crear la imagen Docker y subirla a AWS ECR.
+  3. Usar Terraform para levantar un servidor EC2 que descargue y ejecute tu imagen.
+  4. Resultado: tu aplicación estará disponible desde una IP pública.
 
-  #linear.callout(title: [Orden de creación])[
-    Estos componentes se crean en secuencia: Primero VPC, luego Internet Gateway, Subnets, Route Tables, Security Groups
+  #v(1em)
+
+  #linear.callout(title: [Lo que automatizaremos])[
+    Todo el paso 3: red, permisos, servidor y deployment automático
   ]
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [VPC],
+  subtitle: [Componentes de AWS],
 )[
-  #linear.two-columns(
-    split: 45%,
-    [
-      *¿Qué es CIDR?*
-
-      `10.0.0.0/16` significa que 10.0.0.0 es la dirección base y /16 indica que los primeros 16 bits son fijos. El resultado son 65,536 IPs disponibles (desde 10.0.0.0 hasta 10.0.255.255).
-
-      #v(1em)
-      *¿Por qué DNS?*
-
-      `enable_dns_support` permite resolución de nombres y `enable_dns_hostnames` asigna nombres DNS a recursos. Esto permite usar nombres como `mi-base-datos.internal` en vez de IPs.
-    ],
-    [
-      ```hcl
-      provider "aws" {
-        region = "us-east-2"
-      }
-
-      resource "aws_vpc" "default" {
-        cidr_block           = "10.0.0.0/16"
-        enable_dns_support   = true
-        enable_dns_hostnames = true
-        tags = { Name = "Proyecto1_EC2_VPC" }
-      }
-
-      resource "aws_internet_gateway" "default" {
-        vpc_id = aws_vpc.default.id
-        tags = { Name = "Proyecto1_EC2_IGW" }
-      }
-      ```
-
-      El Internet Gateway se asocia a la VPC y permite que los recursos dentro puedan comunicarse con internet.
-    ],
-  )
-]
-
-#linear.slide(
-  title: [Terraform],
-  subtitle: [Subnets públicos],
-)[
-  Una subnet puede ser pública o privada según su configuración de enrutamiento.
+  Para desplegar Django en AWS necesitamos "construir el edificio". Explicar a fondo cómo funciona Terraform está fuera del alcance de este workshop, pero para darte una idea, podemos usar estas analogías:
 
   #linear.two-columns(
     split: 50%,
     [
-      Subnet Pública (nuestro caso):
-      - Tiene ruta al Internet Gateway
-      - Las instancias pueden tener IP pública
-      - Usa: servidores web, APIs
+      *VPC (Virtual Private Cloud)*
 
-      Ignoraremos el caso de subnet privada ya que no es necesario para nuestro proyecto.
+      Tu terreno delimitado en AWS. Todo vive aquí dentro.
 
       #v(1em)
-      `map_public_ip_on_launch = true` hace que cada instancia en esta subnet reciba automáticamente una IP pública.
+
+      *Subnets*
+
+      Divisiones dentro del terreno para organizar recursos.
+
+      #v(1em)
+
+      *Internet Gateway*
+
+      La puerta de entrada que conecta tu edificio con internet.
     ],
     [
+      *Route Tables*
+
+      Señalética que indica cómo mover el tráfico.
+
+      #v(1em)
+
+      *Security Groups*
+
+      Guardias de seguridad: quién puede entrar y por dónde.
+
+      #v(1em)
+
+      *EC2 Instance*
+
+      El servidor donde corre tu aplicación Django.
+    ],
+  )
+
+  #v(1em)
+
+  Terraform creará todo esto automáticamente siguiendo el orden correcto.
+]
+
+#linear.slide(
+  title: [Terraform],
+  subtitle: [VPC y el internet gateway],
+)[
+  #linear.two-columns(
+    split: 50%,
+    [
+      Primero, le decimos a Terraform que usaremos AWS:
+
       ```hcl
-      resource "aws_subnet" "subnet1" {
-        vpc_id                  = aws_vpc.default.id
-        cidr_block              = "10.0.1.0/24"
-        availability_zone       = "us-east-1a"
-        map_public_ip_on_launch = true
-        tags = { Name = "Django_Public_Subnet_1" }
+      provider "aws" {
+        region = "us-east-1"
       }
       ```
 
-      Availability Zone: AWS divide cada región en múltiples zonas físicamente separadas. Esto da resiliencia ante fallos de hardware (véase el caso de hace unos días cuando us-east-1 cayó).
+      #v(1em)
+
+      Luego creamos nuestra red privada (VPC):
+
+      ```hcl
+      resource "aws_vpc" "default" {
+        cidr_block = "10.0.0.0/16"
+        enable_dns_hostnames = true
+        tags = { Name = "Django_VPC" }
+      }
+      ```
+
+      *¿Qué significa?*
+
+      Tenemos 65,536 IPs disponibles para nuestros recursos.
+    ],
+    [
+      Y conectamos con internet:
+
+      ```hcl
+      resource "aws_internet_gateway" "default" {
+        vpc_id = aws_vpc.default.id
+        tags = { Name = "Django_IGW" }
+      }
+      ```
+
+      #v(1em)
+
+      *Un detalle:* `aws_vpc.default.id`
+
+      Terraform entiende las dependencias. No puedes crear el gateway sin VPC primero.
+
+      #v(1em)
+
+      #linear.callout(title: [DNS habilitado])[
+        `enable_dns_hostnames = true` permite usar nombres como `mi-db.internal` en vez de IPs
+      ]
     ],
   )
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Route Tables],
+  subtitle: [Subnets y enrutamiento],
 )[
-  *¿Cómo funciona el enrutamiento?* Cuando un paquete sale de tu instancia EC2, la Route Table decide a dónde enviarlo:
+  Creamos una subnet pública (accesible desde internet):
+  ```hcl
+  resource "aws_subnet" "public" {
+    vpc_id                  = aws_vpc.default.id
+    cidr_block              = "10.0.1.0/24"
+    availability_zone       = "us-east-2"
+    map_public_ip_on_launch = true  # Cada instancia recibe IP pública automáticamente
+    tags = { Name = "Django_Public_Subnet" }
+  }
+  ```
 
+  Y configuramos la ruta de salida a internet:
   ```hcl
   resource "aws_route_table" "public" {
     vpc_id = aws_vpc.default.id
     route {
-      cidr_block = "0.0.0.0/0"  # Cualquier destino en internet
-      gateway_id = aws_internet_gateway.default.id
+      cidr_block = "0.0.0.0/0"  # Cualquier IP externa
+      gateway_id = aws_internet_gateway.default.id  # Va por el gateway
     }
-    tags = { Name = "Django_Public_RT" }
   }
   ```
 
-  Es decir: "Si el destino NO está en mi VPC (10.0.0.0/16), envía el paquete al Internet Gateway"
-
-  #v(1em)
-  Asociación: Conectar la subnet con la route table:
-  ```hcl
-  resource "aws_route_table_association" "subnet1" {
-    subnet_id      = aws_subnet.subnet1.id
-    route_table_id = aws_route_table.public.id
-  }
-  ```
-
-  Sin esta asociación, la subnet no sabe cómo enrutar el tráfico.
+  Traducción: "Si el destino NO está en mi VPC (10.0.0.0/16), envíalo a internet"
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Security Groups],
+  subtitle: [Security groups: ingress],
 )[
-  Puedes pensar en los Security Groups como guardias de seguridad que inspeccionan cada conexión.
+  ```hcl
+  resource "aws_security_group" "django" {
+    name   = "django_sg"
+    vpc_id = aws_vpc.default.id
 
-  Reglas de entrada (ingress):
-  - Puerto 80 (HTTP): Para que los usuarios accedan a tu sitio web
-  - Puerto 22 (SSH): Para que TÚ puedas conectarte y administrar el servidor
-
-  Regla de salida (egress):
-  - Todos los puertos: El servidor puede iniciar conexiones a cualquier destino (descargar paquetes, actualizar Docker, etc.)
-
-  #v(1em)
-  #linear.callout(title: [Importante])[
-    `0.0.0.0/0` significa "cualquier IP". En producción, restringe SSH a tu IP o VPN corporativa.
-  ]
+    # Permitir tráfico HTTP desde cualquier lugar
+    ingress {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+    # Permitir SSH solo para administración (opcional)
+    ingress {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]  # En producción: tu IP específica
+    }
+  }
+  ```
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Security Groups],
+  subtitle: [Security groups: egress],
 )[
   ```hcl
   resource "aws_security_group" "ec2_sg" {
     name   = "django_ec2_sg"
     vpc_id = aws_vpc.default.id
 
-    ingress {
-      description = "HTTP desde internet"
-      from_port   = 80
-      to_port     = 80
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-
-    ingress {
-      description = "SSH para admin"
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
-    }
-
+    # Permite tráfico de salida para descarga de paquetes u otros recursos necesarios
     egress {
       from_port   = 0
       to_port     = 0
@@ -690,225 +743,203 @@
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Permisos en AWS],
+  subtitle: [Roles IAM para EC2],
 )[
-  Problema: Tu instancia EC2 necesita descargar la imagen Docker desde ECR. ¿Cómo le damos permiso?
+  El servidor necesita permisos IAM para descargar la imagen Docker desde ECR. Este recurso crea un rol IAM (`aws_iam_role`) que EC2 puede asumir, otorgándole permisos temporales según sea necesario.
 
-  Solución: IAM Roles, identidades con permisos específicos que los servicios pueden asumir.
-
-  #linear.two-columns(
-    split: 50%,
-    [
-      Flujo de permisos:
-      1. Role: Define QUÉ puede hacer (leer ECR)
-      2. Assume Role Policy: Define QUIÉN puede usarlo (servicio EC2)
-      3. Instance Profile: Adjunta el role a la instancia
-
-      #v(1em)
-      La política `AmazonEC2ContainerRegistryReadOnly` es gestionada por AWS y da permisos de solo lectura a ECR.
-    ],
-    [
-      ```hcl
-      resource "aws_iam_role" "ec2_role" {
-        name = "django_ec2_ecr_role"
-        assume_role_policy = jsonencode({
-          Version = "2012-10-17"
-          Statement = [{
-            Action = "sts:AssumeRole"
-            Effect = "Allow"
-            Principal = {
-              Service = "ec2.amazonaws.com"
-            }
-          }]
-        })
-      }
-
-      resource "aws_iam_role_policy_attachment" "ecr_read" {
-        role       = aws_iam_role.ec2_role.name
-        policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-      }
-
-      resource "aws_iam_instance_profile" "ec2_profile" {
-        name = "django_ec2_profile"
-        role = aws_iam_role.ec2_role.name
-      }
-      ```
-    ],
-  )
+  ```hcl
+  resource "aws_iam_role" "ec2_ecr" {
+    name = "ec2_ecr_access"
+    assume_role_policy = jsonencode({
+      Version = "2012-10-17"
+      Statement = [{
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = { Service = "ec2.amazonaws.com" }
+      }]
+    })
+  }
+  ```
 ]
+
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Instancia EC2],
+  subtitle: [Políticas y perfil de EC2],
 )[
-  Finalmente, creamos el servidor que ejecutará Django:
+  Se adjunta la política de solo lectura a ECR y se crea un perfil de instancia para EC2.
+
+  *Qué hace cada recurso:*
+
+  - `aws_iam_role_policy_attachment`: da permisos de solo lectura a ECR.
+  - `aws_iam_instance_profile`: permite que la EC2 use el rol creado.
 
   ```hcl
-  resource "aws_instance" "web" {
-    ami                         = "ami-0c101f26f147fa7fd"  # Amazon Linux 2023
-    instance_type               = "t3.micro"
-    subnet_id                   = aws_subnet.subnet1.id
-    vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
-    associate_public_ip_address = true
-    iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
-    user_data_replace_on_change = true
-    tags = { Name = "Django_Web_Server" }
+  resource "aws_iam_role_policy_attachment" "ecr_read" {
+    role       = aws_iam_role.ec2_ecr.name
+    policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  }
 
-    user_data = <<-EOF
-      #!/bin/bash
-      # ... (configuración automática)
-    EOF
+  resource "aws_iam_instance_profile" "ec2_profile" {
+    name = "ec2_profile"
+    role = aws_iam_role.ec2_ecr.name
   }
   ```
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Parámetros de EC2],
+  subtitle: [Servidor EC2],
 )[
-  #linear.data-table(
-    headers: ("Parámetro", "¿Qué hace?", "¿Por qué este valor?"),
-    column-widths: (25%, 35%, 40%),
-    rows: (
-      [ami],
-      [Amazon Machine Image - el "sistema operativo" base],
-      [Amazon Linux 2023 es optimizado para AWS, incluye AWS CLI y Docker pre-instalable],
-      [instance_type],
-      [Capacidad de CPU y RAM],
-      [`t3.micro`: 2 vCPUs, 1GB RAM. Suficiente para Django y free tier],
-      [subnet_id],
-      [Dónde vive la instancia],
-      [La subnet pública que creamos antes con acceso a internet],
-      [iam_instance_profile],
-      [Permisos de la instancia],
-      [Le da acceso a ECR para descargar la imagen Docker],
-      [user_data],
-      [Script de inicialización],
-      [Automatiza la instalación de Docker y deployment de la app],
-      [user_data_replace_on_change],
-      [Recrear si cambia user_data],
-      [`true`: Si modificas el script, Terraform destruye y recrea la instancia],
-    ),
-  )
+  ```hcl
+  resource "aws_instance" "django" {
+    ami                    = "ami-0c101f26f147fa7fd"  # Amazon Linux 2023
+    instance_type          = "t3.micro"                # Free tier (1GB RAM, 2 vCPUs)
+    subnet_id              = aws_subnet.public.id
+    vpc_security_group_ids = [aws_security_group.django.id]
+    iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
+
+    user_data = <<-EOF
+      # Aquí va el script que se ejecuta al iniciar la instancia
+    EOF
+
+    tags = { Name = "Django_Server" }
+  }
+  ```
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Automatizando el proceso],
+  subtitle: [User Data script],
 )[
-  El script `user_data` se ejecuta UNA VEZ cuando la instancia inicia por primera vez.
+  Este script se ejecuta UNA VEZ cuando la instancia inicia:
 
-  Pasos que automatiza:
-  1. Actualizar el sistema e instalar Docker + AWS CLI
-  2. Autenticar con ECR usando credenciales de IAM
-  3. Descargar la imagen Docker desde tu repositorio privado
-  4. Ejecutar el contenedor exponiendo el puerto 80
+  ```bash
+  #!/bin/bash
+  set -e  # Detener si algo falla
 
-  #v(1em)
-  #linear.callout(title: [Concepto clave])[
-    `set -e` al inicio hace que el script se detenga si cualquier comando falla. Esto evita que sigas ejecutando comandos cuando algo salió mal.
+  # 1. Instalar Docker
+  yum update -y && yum install -y docker && service docker start
+
+  # 2. Instalar AWS CLI
+  yum install -y aws-cli
+
+  # 3. Login a ECR
+  aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin YOUR_ECR_REGISTRY_URL
+
+  # 4. Descargar y ejecutar tu imagen Django
+  docker pull YOUR_ECR_REGISTRY_URL/django-app:latest
+  docker run -d -p 80:8080 --restart unless-stopped -e SECRET_KEY=${var.secret_key} YOUR_ECR_REGISTRY_URL/django-app:latest
+  ```
+
+  #linear.callout(title: [Mapeo de puertos])[
+    `-p 80:8080` expone puerto 8080 del contenedor en el puerto 80 del host
   ]
-
-  Ver código completo en el repo. Los puntos críticos son `docker run -d -p 80:8080` que mapea puerto 8080 del contenedor al 80 del host, `--restart unless-stopped` reinicia el contenedor automáticamente si falla, y `--env SECRET_KEY=${var.secret_key}` inyecta variables de entorno seguras.
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Parametrización],
+  subtitle: [Variables de entorno],
 )[
-  ¿Por qué usar variables? Por seguridad, valores sensibles no van en el código. Te da flexibilidad para usar el mismo código en dev, staging y producción. Y facilita la colaboración porque cada desarrollador usa sus propias credenciales.
+  Nunca pongas secretos en el código:
 
   #linear.two-columns(
     split: 50%,
     [
-      Declaración en `variables.tf`:
+      *variables.tf*
+
       ```hcl
       variable "secret_key" {
         description = "Django SECRET_KEY"
         type        = string
-        sensitive   = true  # Oculta en logs
+        sensitive   = true  # Oculto en logs
       }
 
-      variable "aws_region" {
-        description = "AWS region"
+      variable "ecr_registry" {
+        description = "ECR Registry URL"
         type        = string
-        default     = "us-east-1"
       }
       ```
     ],
     [
-      Valores en `terraform.tfvars`:
-      ```hcl
-      secret_key = "tu-clave-super-secreta"
-      aws_region = "us-east-1"
-      ```
+      *terraform.tfvars* (no commitear)
 
-      #linear.callout(title: [¡IMPORTANTE!])[
-        Agrega `terraform.tfvars` a `.gitignore`. Nunca commitees secretos.
-      ]
+      ```hcl
+      secret_key   = "tu-clave-super-secreta-aquí"
+      ecr_registry = "123456.dkr.ecr.us-east-1.amazonaws.com"
+      ```
+      #v(1em)
+      *`.gitignore`*
+
+      ```
+      terraform.tfvars
+      *.tfstate
+      *.tfstate.backup
+      ```
     ],
   )
 
-  Uso en código: `${var.secret_key}` accede al valor de la variable.
+  Uso: `${var.secret_key}` en cualquier parte del código.
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Workflow o modo de trabajo],
+  subtitle: [Flujo de trabajo],
 )[
-  Los 3 comandos esenciales:
-
+  Prepara el directorio y descarga los providers de AWS (solo la primera vez):
   ```bash
-  terraform init    # Descarga providers y módulos
-  terraform plan    # Vista previa de cambios (sin aplicar)
-  terraform apply   # Aplica cambios (requiere confirmación)
+  terraform init
   ```
 
-  #v(1em)
-  ¿Qué pasa cuando ejecutas `apply`? Terraform lee tu código `.tf`, compara con el estado actual en `terraform.tfstate`, calcula qué crear, modificar o eliminar, te muestra un plan y pide confirmación, ejecuta las operaciones contra la API de AWS, y actualiza el archivo de estado.
+  Para ver qué cambios se harán (sin aplicar), ejecuta:
+  ```bash
+  terraform plan
+  ```
 
-  #linear.callout(title: [Estado de Terraform])[
-    `terraform.tfstate` es crucial, guarda el mapeo entre tu código y los recursos reales en AWS. Protégelo y nunca lo edites manualmente.
+  Para aplicar los cambios, ejecuta:
+  ```bash
+  terraform apply
+  ```
+
+  #linear.callout(title: [Estado])[
+    `terraform.tfstate` guarda el mapeo entre tu código y recursos reales. ¡Protégelo!
   ]
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Outputs],
+  subtitle: [Información útil después del deploy],
 )[
-  Los outputs muestran información relevante automáticamente después de `apply`:
+  Después de `terraform apply`, es probable que querramos sabe ver la IP de nuestra app:
 
   ```hcl
-  output "instance_public_ip" {
-    description = "IP pública de la instancia EC2"
-    value       = aws_instance.web.public_ip
+  output "instance_ip" {
+    description = "IP pública del servidor Django"
+    value       = aws_instance.django.public_ip
   }
 
-  output "instance_url" {
+  output "app_url" {
     description = "URL de la aplicación"
-    value       = "http://${aws_instance.web.public_ip}"
+    value       = "http://${aws_instance.django.public_ip}"
   }
   ```
 
-  Resultado en terminal después de apply:
+  *Resultado en terminal:*
+
   ```
   Outputs:
-  instance_public_ip = "18.220.45.123"
-  instance_url = "http://18.220.45.123"
+
+  instance_ip = "18.220.45.123"
+  app_url     = "http://18.220.45.123"    # Copia la URL, ábrela en tu navegador
   ```
-
-  Copia la URL y ábrela en tu navegador, tu aplicación Django está corriendo.
-
-  Tip: También puedes ejecutar `terraform output` en cualquier momento para ver los valores.
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Modificar infra],
+  subtitle: [Cómo modificar la infraestructura],
 )[
-  Escenario: Quieres abrir el puerto 8000 para debugging.
+  *Escenario:* Quieres abrir el puerto 8000 para debugging. Edita `main.tf`:
 
-  Edita `main.tf` y agrega una regla ingress:
   ```hcl
   ingress {
     description = "Django dev server"
@@ -919,61 +950,51 @@
   }
   ```
 
-  Ejecuta `terraform plan` y verás que modificará el security group.
+  Ejecuta:
 
-  Aplica `terraform apply` y Terraform actualiza solo ese recurso.
+  ```bash
+  terraform plan   # Verás: "aws_security_group.django will be updated"
+  terraform apply  # Solo modifica el security group
+  ```
 
-  #v(1em)
-  #linear.callout(title: [Terraform es inteligente])[
-    No recrea todo desde cero. Solo modifica los recursos que cambiaron. Esto es gracias al archivo de estado.
+  #linear.callout()[
+    Terraform NO recrea todo. Solo actualiza lo que cambió gracias al archivo de estado.
   ]
 ]
 
 #linear.slide(
   title: [Terraform],
-  subtitle: [Limpieza de recursos],
+  subtitle: [Destrucción de recursos],
 )[
-  Cuando termines con el proyecto:
-
+  Cuando termines con el proyecto, es recomendable ejecutar:
   ```bash
   terraform destroy
   ```
 
-  Terraform eliminará todos los recursos en orden inverso a su creación (respetando dependencias).
+  Terraform eliminará TODO en orden inverso: Primero la instancia EC2, luego Security Groups, Route Tables y asociaciones, Subnets, Internet Gateway, VPC.
 
-  #v(1em)
-  Orden de destrucción:
-  - Instancia EC2
-  - Security Groups
-  - Route Table Associations
-  - Route Tables
-  - Subnets
-  - Internet Gateway
-  - VPC
+  #linear.callout(title: [Sobre los costos])[
+    AWS cobra por recursos activos. Si no destruyes:
+    - Instancia EC2: ~\$0.01/hora = ~\$7/mes
+    - IP elástica (si la reservas): \$0.005/hora cuando no está en uso
 
-  #v(1em)
-  #linear.callout(title: [Costos])[
-    AWS cobra por recursos activos. Si no destruyes la infraestructura, seguirás pagando por la instancia EC2, IP pública, etc. Destruye lo que no uses.
+    *Destruye lo que no uses.*
   ]
 
-  Recomendación: `terraform plan -destroy` te muestra qué se eliminará sin hacerlo.
+  Tip: `terraform plan -destroy` muestra qué se eliminará sin hacerlo.
 ]
 
 #linear.section-slide[Dominio y HTTPS]
 
 #linear.slide(
-  title: [Dominio personalizado],
+  title: [Dominio],
   subtitle: [Por qué un Application Load Balancer],
 )[
   Podrías apuntar tu dominio directamente a la IP de EC2, pero un Load Balancer (ALB) es la forma profesional de hacerlo:
   - *HTTPS:* Gestiona certificados SSL gratis con AWS Certificate Manager (ACM).
   - *Escalabilidad:* Puede distribuir tráfico entre múltiples servidores.
   - *Alta disponibilidad:* Si un servidor falla, puede redirigir el tráfico a otros.
-]
 
-#linear.slide(
-  title: [Terraform: Dominio y HTTPS],
-)[
   #linear.grid-layout(
     columns: 2,
     gutter: 1.5em,
@@ -1041,11 +1062,11 @@
 ]
 
 
-#linear.section-slide[Cierre]
+#linear.section-slide[En conclusión... 😮‍💨]
 
 #linear.slide(
-  title: [Resumen],
-  subtitle: [Lo que construimos],
+  title: [TLDR],
+  subtitle: [¿Qué hicimos?],
 )[
   En este workshop desplegaste:
 
@@ -1061,7 +1082,7 @@
 ]
 
 #linear.slide(
-  title: [Recursos],
+  title: [Recursos adicionales],
 )[
   Documentación oficial:
   - Django: `docs.djangoproject.com`
@@ -1070,14 +1091,10 @@
   - AWS: `docs.aws.amazon.com`
 
   #v(2em)
-  La mejor forma de aprender es construyendo. Toma este proyecto y agrégale features.
-]
-
-#linear.focus-slide[
-  ¡Gracias!
+  La mejor forma de aprender es construyendo.
 ]
 
 #linear.qa-slide(
-  question: [¿Preguntas?],
+  question: [¡Gracias!... ¿Preguntas?],
   subtitle: [Siéntete libre de preguntar],
 )

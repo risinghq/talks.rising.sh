@@ -83,7 +83,7 @@
     it
   }
 
-  set enum(indent: 0em, body-indent: 1em, spacing: 1.5em)
+  set enum(indent: 0em, body-indent: 1em, spacing: 1.25em)
   show enum.item: it => {
     set text(/*fill: colors.gray-700,*/ size: sizes.body)
     it
