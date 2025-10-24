@@ -338,7 +338,7 @@
   Para pausar la imagen, solo ejecuta:
   ```bash
   docker ps
-  docker kill <image_id>
+  docker kill <container_id>
   ```
 ]
 
@@ -377,7 +377,7 @@
 
   Hoy lo haremos directamente con código. Primero, asegúrate de tener instalado *AWS CLI* (https://awscli.amazonaws.com/AWSCLIV2.msi) en tu PC:
   #figure(
-    image("img/awscli.png", width: 63%),
+    image("img/awscli.png", width: 55%),
   )
 
   Verifica la instalación ejecutando:
@@ -468,7 +468,7 @@
 
     #block[
       ```bash
-      docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) <TU_URI>.dkr.ecr.us-east-2.amazonaws.com
+      aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin <TU_URI>.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2
       ```
     ]
 
@@ -476,7 +476,7 @@
 
     #block[
       ```bash
-      docker tag proyecto1-ec2:latest <TU_URI>/proyecto1-ec2:latest
+      docker tag proyecto1-ec2:latest <TU_URI>.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2:latest
       ```
     ]
 
@@ -484,7 +484,7 @@
 
     #block[
       ```bash
-      docker push <TU_URI>/proyecto1-ec2:latest
+      docker push <TU_URI>.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2:latest
       ```
     ]
 
@@ -494,7 +494,6 @@
 
     #figure(image("img/aws-ecr.png", width: 70%))
 ]
-
 
 #linear.section-slide[Herramienta \#2: Terraform]
 

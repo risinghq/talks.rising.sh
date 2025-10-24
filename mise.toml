@@ -3,6 +3,8 @@ typst = "0.13.1"
 typstyle = "0.13.18"
 uv = "0.9.5"
 ruff = "0.14.1"
+docker-cli = "28.5.1"
+terraform = "1.13.4"
 gh = "2.82.1"
 
 # Development tasks
