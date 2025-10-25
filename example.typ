@@ -715,24 +715,42 @@
   title: [Terraform],
   subtitle: [AWS: Route Tables [4]],
 )[
-  Luego configuramos la tabla de rutas para que la subnet pública tenga salida a internet:
+  Luego configuramos la tabla de rutas para que ambas subnets públicas tengan salida a internet:
 
   ```hcl
   resource "aws_route_table" "public" {
-    vpc_id = aws_vpc.default.id                     # Mismo ID que la VPC que creamos (pag. 45)
+    vpc_id = aws_vpc.main.id
 
     route {
-      cidr_block = "0.0.0.0/0"                      # Tráfico a cualquier IP es permitido
-      gateway_id = aws_internet_gateway.default.id  # Sale por el Gateway que definimos (pag. 46)
+      cidr_block = "0.0.0.0/0"
+      gateway_id = aws_internet_gateway.gw.id
     }
 
     tags = {
-      Name = "Django_Route_Table"
+      Name = "RT-Public-Django"
     }
   }
   ```
 
-  Traducción: "Si el destino NO está dentro de la VPC (10.0.0.0/16), envíalo a internet"
+  ```hcl
+  # Asociar la subnet A con la tabla de rutas
+  resource "aws_route_table_association" "a" {
+    subnet_id      = aws_subnet.public_a.id
+    route_table_id = aws_route_table.public.id
+  }
+
+  # Asociar la subnet B con la tabla de rutas
+  resource "aws_route_table_association" "b" {
+    subnet_id      = aws_subnet.public_b.id
+    route_table_id = aws_route_table.public.id
+  }
+  ```
+
+  Traducción: "Si el destino NO está dentro de la VPC (10.0.0.0/16), envíalo a internet a través del Internet Gateway"
+
+  #linear.callout()[
+    Ambas subnets necesitan estar asociadas a la tabla de rutas para tener acceso a internet.
+  ]
 ]
 
 #linear.slide(
@@ -836,20 +854,19 @@
   Finalmente, creamos la instancia EC2 donde se ejecutará nuestra aplicación Django:
 
   ```hcl
-  resource "aws_instance" "django" {
-    ami                    = "ami-0c101f26f147fa7fd"    # Amazon Linux 2023
-    instance_type          = "t3.micro"                 # (1GB RAM, 2 vCPUs)
-    subnet_id              = aws_subnet.public.id
-    vpc_security_group_ids = [aws_security_group.django.id]
-    iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
+  resource "aws_instance" "django_server" {
+    ami                         = "ami-0c101f26f147fa7fd"
+    instance_type               = "t3.micro"
+    subnet_id                   = aws_subnet.public_a.id
+    vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
+    iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+    associate_public_ip_address = true
 
     user_data = <<-EOF
       # Aquí va el script que se ejecuta al iniciar la instancia
     EOF
 
-    tags = {
-      Name = "Django_Server"
-    }
+    tags = { Name = "Servidor-Django-Andres" }
   }
   ```
 
@@ -863,22 +880,27 @@
   Este script se ejecuta UNA VEZ cuando la instancia inicia (user_data):
 
   ```bash
-  #!/bin/bash
-  set -e  # Detener si algo falla
-
   # 1. Instalar Docker
   yum update -y && yum install -y docker && service docker start
 
-  # 2. Instalar AWS CLI
-  yum install -y aws-cli
+  # 2. Login a ECR
+  aws ecr get-login-password --region ${var.aws_region} | docker login --username AWS --password-stdin ${var.ecr_repo_url}
 
-  # 3. Login a ECR
-  aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin YOUR_ECR_REGISTRY_URL
-
-  # 4. Descargar y ejecutar tu imagen Django
-  docker pull YOUR_ECR_REGISTRY_URL/django-app:latest
-  docker run -d -p 80:8080 --restart unless-stopped -e SECRET_KEY=${var.secret_key} YOUR_ECR_REGISTRY_URL/django-app:latest
+  # 3. Descargar y ejecutar tu imagen Django
+  docker run -d -p 80:80 --restart unless-stopped \
+    -e SECRET_KEY='${var.secret_key}' \
+    -e DB_NAME='${aws_db_instance.main.db_name}' \
+    -e DB_USER='${aws_db_instance.main.username}' \
+    -e DB_PASSWORD='${var.db_password}' \
+    -e DB_HOST='${aws_db_instance.main.address}' \
+    -e DB_PORT='${aws_db_instance.main.port}' \
+    ${var.ecr_repo_url}:latest
+  EOF
   ```
+
+  #linear.callout()[
+    El script usa `${var.ecr_repo_url}` que debe incluir la URL completa del repositorio ECR que guardaste anteriormente.
+  ]
 ]
 
 #linear.focus-slide(text-size: 25pt)[

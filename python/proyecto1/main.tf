@@ -5,8 +5,10 @@ provider "aws" {
 # --- 1. RED: Define nuestro espacio de red aislado en AWS ---
 # VPC: Tu nube privada virtual. Es el contenedor para todos tus recursos de red.
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
-  tags = { Name = "VPC-Django-Taller" }
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+  tags                 = { Name = "VPC-Django-Taller" }
 }
 
 # Subnets: Subdivisiones de la VPC en diferentes zonas de disponibilidad para alta redundancia.
