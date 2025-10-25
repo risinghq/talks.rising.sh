@@ -678,17 +678,34 @@
   title: [Terraform],
   subtitle: [AWS: Subnets [2]],
 )[
-  Creamos una subnet pública (accesible desde internet):
-  ```hcl
-  resource "aws_subnet" "public" {
-    vpc_id                  = aws_vpc.default.id
-    cidr_block              = "10.0.1.0/24"
-    availability_zone       = "us-east-2a"
+  Creamos dos subnets públicas en diferentes zonas de disponibilidad para alta disponibilidad (requerido por RDS):
 
-    map_public_ip_on_launch = true  # Cada instancia recibe IP pública automáticamente
+  #linear.callout()[
+    RDS requiere al menos dos subnets en diferentes zonas de disponibilidad. `map_public_ip_on_launch = true` asegura que las instancias reciban automáticamente una IP pública.
+  ]
+
+  ```hcl
+  resource "aws_subnet" "public_a" {
+    vpc_id                  = aws_vpc.main.id
+    cidr_block              = "10.0.1.0/24"
+    availability_zone       = "${var.aws_region}a"
+    map_public_ip_on_launch = true
 
     tags = {
-      Name = "Django_Public_Subnet"
+      Name = "Subnet-Public-A"
+    }
+  }
+  ```
+
+  ```hcl
+  resource "aws_subnet" "public_b" {
+    vpc_id                  = aws_vpc.main.id
+    cidr_block              = "10.0.2.0/24"
+    availability_zone       = "${var.aws_region}b"
+    map_public_ip_on_launch = true
+
+    tags = {
+      Name = "Subnet-Public-B"
     }
   }
   ```
@@ -1715,12 +1732,12 @@
   - Conectado a Amazon Cloudwatch para monitoreo
 
   #linear.callout()[
-      *Logro desbloqueado* 🏆: Has desplegado un stack de producción real. Repetible, versionable y sin un solo clic en la consola de AWS.
-    ]
+    *Logro desbloqueado* 🏆: Has desplegado un stack de producción real. Repetible, versionable y sin un solo clic en la consola de AWS.
+  ]
 ]
 
 #linear.image-slide(
-  image("img/final-architecture.png", fit: "contain")
+  image("img/final-architecture.png", fit: "contain"),
 )
 
 #linear.slide(
