@@ -2,6 +2,21 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_support   = true
@@ -105,7 +120,7 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 }
 
 resource "aws_instance" "django_server" {
-  ami                         = "ami-0c101f26f147fa7fd"
+  ami                         = data.aws_ami.amazon_linux_2.id
   instance_type               = "t3.micro"
   subnet_id                   = aws_subnet.public_a.id
   vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
