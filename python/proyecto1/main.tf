@@ -76,7 +76,7 @@ resource "aws_security_group" "ec2_sg" {
 }
 
 resource "aws_iam_role" "ec2_role" {
-  name = "ec2-role-django"
+  name = "ec2-role-django-workshop-v2"
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
     Statement = [{
@@ -100,7 +100,7 @@ resource "aws_iam_role_policy_attachment" "cloudwatch_logs" {
 }
 
 resource "aws_iam_instance_profile" "ec2_profile" {
-  name = "ec2-profile-django"
+  name = "ec2-profile-django-workshop-v2"
   role = aws_iam_role.ec2_role.name
 }
 

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -18,6 +19,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # CRÍTICO: La Secret Key nunca debe estar hardcodeada. Se lee de una variable de entorno.
 SECRET_KEY = os.environ.get("SECRET_KEY")
+if SECRET_KEY is None:
+    SECRET_KEY = "django-insecure-workshop-key-change-this-in-production"
+    print("\n⚠️  WARNING: SECRET_KEY not set via environment variable!", file=sys.stderr)
+    print(
+        "   Using default insecure key. This is ONLY acceptable for workshop/development.",
+        file=sys.stderr,
+    )
+    print("   For production, set SECRET_KEY environment variable.\n", file=sys.stderr)
 
 # CRÍTICO: DEBUG debe ser False en producción para evitar exponer información sensible.
 DEBUG = os.environ.get("DEBUG", "False") == "True"

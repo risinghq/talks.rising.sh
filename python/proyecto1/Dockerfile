@@ -13,7 +13,8 @@ COPY ./manage.py /app/
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 COPY ./entrypoint.sh /app/entrypoint.sh
 
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh && \
+    mkdir -p /app/staticfiles
 
 EXPOSE ${PORT}
 
