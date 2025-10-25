@@ -1,22 +1,22 @@
 variable "aws_region" {
-  description = "La región de AWS para desplegar los recursos."
+  description = "AWS region for resources"
   type        = string
   default     = "us-east-2"
 }
 
 variable "secret_key" {
-  description = "La SECRET_KEY de Django."
+  description = "Django SECRET_KEY"
   type        = string
-  sensitive   = true # Evita que Terraform muestre este valor en los logs.
+  sensitive   = true
 }
 
 variable "db_password" {
-  description = "La contraseña para el usuario de la base de datos RDS."
+  description = "RDS database password"
   type        = string
   sensitive   = true
 }
 
 variable "ecr_repo_url" {
-  description = "La URL completa del repositorio ECR (sin la etiqueta :latest)."
+  description = "ECR repository URL without :latest tag"
   type        = string
 }
