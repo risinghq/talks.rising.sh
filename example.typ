@@ -1258,7 +1258,7 @@
 ]
 
 #linear.image-slide[
-  pendiente
+  ver pantalla
 ]
 
 #linear.slide(
@@ -1484,7 +1484,7 @@
 ]
 
 #linear.image-slide[
-  pendiente
+  ver pantalla
 ]
 
 #linear.focus-slide[
