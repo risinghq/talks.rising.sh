@@ -454,7 +454,7 @@
           "registryId": "***",
           "repositoryName": "proyecto1-ec2",
           "repositoryUri": "***.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2",
-          "createdAt": "2025-10-23T15:42:25.263000-05:00",
+          "createdAt": "20XX-XX-XXTXX:XX:XX.XXX000-05:00",
           "imageTagMutability": "MUTABLE",
           "imageScanningConfiguration": { "scanOnPush": false },
           "encryptionConfiguration": { "encryptionType": "AES256" }
@@ -462,13 +462,20 @@
   }
   ```
 
-  Guarda el valor *repositoryUri* ya que vamos a necesitarlo en el siguiente paso.
+  #linear.callout(title: [Importante])[
+    Guarda el valor *repositoryUri* completo. Lo necesitarás en múltiples pasos. Te recomendamos guardarlo como variable de entorno:
 
-  2. Para iniciar sesión en el repositorio de ECR. En esta sección reemplaza <TU_URI> por el valor obtenido en el paso anterior:
+    ```bash
+    export ECR_REPO_URI="***.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2"
+    export TF_VAR_ecr_repo_url="$ECR_REPO_URI"
+    ```
+  ]
+
+  2. Para iniciar sesión en el repositorio de ECR:
 
     #block[
       ```bash
-      aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin <TU_URI>.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2
+      aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $ECR_REPO_URI
       ```
     ]
 
@@ -476,7 +483,7 @@
 
     #block[
       ```bash
-      docker tag proyecto1-ec2:latest <TU_URI>.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2:latest
+      docker tag proyecto1-ec2:latest $ECR_REPO_URI:latest
       ```
     ]
 
@@ -484,7 +491,7 @@
 
     #block[
       ```bash
-      docker push <TU_URI>.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2:latest
+      docker push $ECR_REPO_URI:latest
       ```
     ]
 
@@ -492,7 +499,7 @@
 
     Para verificar este proceso, puedes dirigirte a la consola de AWS y buscar la imagen en el repositorio de ECR: #link("https://us-east-2.console.aws.amazon.com/ecr/home?region=us-east-2#")[https://us-east-2.console.aws.amazon.com/ecr/home?region=us-east-2#]
 
-    #figure(image("img/aws-ecr.png", width: 70%))
+    #figure(image("img/aws-ecr.png", width: 55%))
 ]
 
 #linear.focus-slide(text-size: 25pt)[
