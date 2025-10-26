@@ -466,8 +466,8 @@
     Guarda el valor *repositoryUri* completo. Lo necesitarás en múltiples pasos. Te recomendamos guardarlo como variable de entorno:
 
     ```bash
-    export ECR_REPO_URI="***.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2"
-    export TF_VAR_ecr_repo_url="$ECR_REPO_URI"
+    $env:ECR_REPO_URI="***.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2"
+    $env:TF_VAR_ecr_repo_url=$env:ECR_REPO_URI
     ```
   ]
 
@@ -475,7 +475,7 @@
 
     #block[
       ```bash
-      aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $ECR_REPO_URI
+      aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $env:ECR_REPO_URI
       ```
     ]
 
@@ -483,7 +483,7 @@
 
     #block[
       ```bash
-      docker tag proyecto1-ec2:latest $ECR_REPO_URI:latest
+      docker tag proyecto1-ec2:latest "$($env:ECR_REPO_URI):latest"
       ```
     ]
 
@@ -491,7 +491,7 @@
 
     #block[
       ```bash
-      docker push $ECR_REPO_URI:latest
+      docker push "$($env:ECR_REPO_URI):latest"
       ```
     ]
 
@@ -985,15 +985,15 @@
 
   ```bash
   export TF_VAR_username="admin"
-  export TF_VAR_password="supersecret"
+  export TF_VAR_password="password123"
   terraform apply
   ```
 
   En Windows (PowerShell):
 
   ```powershell
-  Set-Item -Path env:TF_VAR_username -Value "admin"
-  Set-Item -Path env:TF_VAR_password -Value "supersecret"
+  $env:TF_VAR_username = "admin"
+  $env:TF_VAR_password = "password123"
   ```
 
   Ahora, cuando ejecutes `terraform apply`, terraform leerá las variables de entorno `TF_VAR_username` y `TF_VAR_password` y usará sus valores respectivos.
