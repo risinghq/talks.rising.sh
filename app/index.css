@@ -1,0 +1,9 @@
+/* The index pages share this list. A talk sets the palette variables it uses. */
+.index { --head-ink: var(--ink); --band1: var(--ink); --accent: var(--muted); position: fixed; inset: 0; overflow: auto; padding: 96px 8vw; background: var(--canvas); }
+.index h1 { font-size: 72px; margin: 20px 0 48px; }
+.index ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.index a { display: flex; flex-direction: column; gap: 10px; height: 100%; padding: 28px; border-radius: 8px; background: #fff; color: var(--head-ink); text-decoration: none; box-shadow: 0 0 0 1px var(--line); border-top: 8px solid var(--band1); transition: transform .2s; }
+.index a:hover { transform: translateY(-3px); }
+.index small { font: 500 14px/1 var(--text); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.index b { font: 500 40px/1 var(--display); letter-spacing: -.03em; }
+.index span { font-size: 18px; line-height: 1.4; color: var(--muted); }

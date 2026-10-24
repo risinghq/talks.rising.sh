@@ -1,0 +1,49 @@
+@font-face { font-family: "Crafter Sans"; src: url(/fonts/CrafterSansPreview-Medium.woff2) format("woff2"); font-weight: 500; font-display: block; }
+@font-face { font-family: "Crafter Sans Text"; src: url(/fonts/CrafterSansTextPreview-Regular.woff2) format("woff2"); font-weight: 400; font-display: block; }
+@font-face { font-family: "Crafter Sans Text"; src: url(/fonts/CrafterSansTextPreview-Medium.woff2) format("woff2"); font-weight: 500; font-display: block; }
+
+:root {
+  --canvas: #f7f7f2; --surface: #efefe8; --ink: #20221d; --muted: #60635a; --line: #cfd1c8;
+  --accent: #ffc107; --backdrop: #e6e7de;
+  --display: "Crafter Sans", ui-sans-serif, system-ui, sans-serif;
+  --text: "Crafter Sans Text", ui-sans-serif, system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; font-family: var(--text); color: var(--ink); -webkit-font-smoothing: antialiased; }
+body { background: var(--backdrop); }
+
+.viewport { position: fixed; inset: 0; overflow: hidden; background: var(--backdrop); }
+.stage { width: 1600px; height: 900px; position: absolute; left: 50%; top: 50%; flex: none; overflow: hidden; border-radius: 6px; box-shadow: 0 30px 80px -30px #20221d40; }
+
+.slide { position: absolute; inset: 0; padding: 72px 96px 56px; display: flex; flex-direction: column; background: var(--canvas); color: var(--ink); }
+.grain { position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: .5; background-image: radial-gradient(#20221d0d 1px, transparent 1px); background-size: 6px 6px; }
+
+.eyebrow { display: flex; align-items: center; gap: 16px; font: 500 22px/1 var(--text); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.eyebrow i { width: 11px; height: 11px; background: var(--accent); display: block; }
+.foot { display: flex; justify-content: space-between; align-items: center; font: 400 22px/1 var(--text); color: var(--muted); position: relative; z-index: 1; }
+
+h1, h2 { font-family: var(--display); font-weight: 500; letter-spacing: -.035em; margin: 0; text-wrap: balance; }
+h1 { font-size: 104px; line-height: 1.02; }
+h2 { font-size: 80px; line-height: 1.04; }
+
+.progress { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--accent); z-index: 3; }
+.hud { position: fixed; right: 16px; bottom: 12px; font: 400 13px/1 var(--text); color: #60635a; display: flex; gap: 14px; }
+.hud button { all: unset; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.hud .speaker b { color: var(--accent); font-weight: 500; }
+.notes { position: fixed; left: 0; right: 0; bottom: 0; max-height: 32vh; overflow: auto; background: #191b17; color: #f3f3e9; padding: 18px 28px 22px; font: 400 19px/1.55 var(--text); z-index: 10; border-top: 3px solid var(--accent); }
+.notes small { display: block; font: 500 12px/1 var(--text); letter-spacing: .08em; text-transform: uppercase; color: #b3b7a8; margin-bottom: 8px; }
+
+/* The browser prints one 1600x900 page per slide. Animations sit below
+   !important declarations in the cascade, so every element prints in its final
+   state whatever motion has applied. */
+.print { display: none; }
+@page { size: 1600px 900px; margin: 0; }
+@media print {
+  html, body { height: auto; overflow: visible; background: none; }
+  .viewport, .hud, .notes { display: none !important; }
+  .print { display: block; }
+  .print .slide { position: relative; width: 1600px; height: 900px; overflow: hidden; }
+  .print .slide + .slide { break-before: page; }
+  .print * { opacity: 1 !important; transform: none !important; filter: none !important; }
+  .print, .print * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
