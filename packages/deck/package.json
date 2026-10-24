@@ -1,0 +1,15 @@
+{
+  "name": "@slides/deck",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./styles.css": "./styles.css"
+  },
+  "dependencies": {
+    "motion": "^14.6.0"
+  },
+  "peerDependencies": {
+    "react": "^19.3.1"
+  }
+}

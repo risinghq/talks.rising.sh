@@ -1,0 +1,16 @@
+{
+  "name": "@slides/diversidad-vegetal",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./theme.css": "./theme.css"
+  },
+  "dependencies": {
+    "@slides/deck": "workspace:*",
+    "motion": "^14.6.0"
+  },
+  "peerDependencies": {
+    "react": "^19.3.1"
+  }
+}

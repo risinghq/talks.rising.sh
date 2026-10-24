@@ -1,3 +1,9 @@
+import foliosa from "../img/briofitos/foliosa.jpg";
+import foliosaRep from "../img/briofitos/foliosa-rep.jpg";
+import musgo from "../img/briofitos/musgo.jpg";
+import musgoRep from "../img/briofitos/musgo-rep.jpg";
+import talosa from "../img/briofitos/talosa.jpg";
+import talosaRep from "../img/briofitos/talosa-rep.jpg";
 import type { Band, Group, Row, Topic } from "./types";
 
 const bands: Band[] = [
@@ -5,10 +11,10 @@ const bands: Band[] = [
   { name: "Musgos", sub: "Bryophyta", span: 1 },
 ];
 
-const groups = (suffix = ""): Group[] => [
-  { name: "Talosas", example: "Marchantia, Lunularia, Riccia", img: `/diversidad-vegetal/img/briofitos/talosa${suffix}.jpg` },
-  { name: "Foliosas", example: "Frullania, Plagiochila, Porella", img: `/diversidad-vegetal/img/briofitos/foliosa${suffix}.jpg` },
-  { name: "Musgos", example: "Polytrichum, Funaria, Sphagnum", img: `/diversidad-vegetal/img/briofitos/musgo${suffix}.jpg` },
+const groups = (rep: boolean): Group[] => [
+  { name: "Talosas", example: "Marchantia, Lunularia, Riccia", img: rep ? talosaRep : talosa },
+  { name: "Foliosas", example: "Frullania, Plagiochila, Porella", img: rep ? foliosaRep : foliosa },
+  { name: "Musgos", example: "Polytrichum, Funaria, Sphagnum", img: rep ? musgoRep : musgo },
 ];
 
 const vegetativos: Row[] = [
@@ -132,7 +138,7 @@ export const briofitos: Topic = {
       id: "vegetativos",
       title: "Aspectos vegetativos",
       bands,
-      cols: groups(),
+      cols: groups(false),
       rows: vegetativos,
       notes: "Gametofito: talo, eje foliado dorsiventral o caulidio radial. Rasgos clave: oleocuerpos y rizoides unicelulares en hepáticas; costa, rizoides pluricelulares e hidroides en musgos.",
     },
@@ -140,7 +146,7 @@ export const briofitos: Topic = {
       id: "reproductivos",
       title: "Aspectos reproductivos",
       bands,
-      cols: groups("-rep"),
+      cols: groups(true),
       rows: reproductivos,
       notes: "Esporofito: en hepáticas la seta crece después de madurar la cápsula y hay eláteres; en musgos la seta crece antes, la cápsula tiene opérculo y peristoma.",
     },

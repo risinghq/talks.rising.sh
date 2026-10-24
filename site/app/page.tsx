@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const talks = [
   { href: "/diversidad-vegetal/", tag: "UNMSM", name: "Diversidad Vegetal", summary: "Cuadros comparativos de hongos y líquenes, briofitos y helechos." },
-  { href: "https://github.com/totallynotdavid/slides/tree/master/typst", tag: "Typst", name: "Deploy en la nube", summary: "Django en AWS con Docker, Terraform y nginx." },
+  { href: "https://github.com/totallynotdavid/slides/tree/master/talks/deploy-django", tag: "Typst", name: "Deploy en la nube", summary: "Django en AWS con Docker, Terraform y nginx." },
 ];
 
 export default function Home() {

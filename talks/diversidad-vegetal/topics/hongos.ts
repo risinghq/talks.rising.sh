@@ -1,3 +1,21 @@
+import agaricus from "../img/hongos/agaricus.jpg";
+import agaricusRep from "../img/hongos/agaricus-rep.jpg";
+import caloplaca from "../img/hongos/caloplaca.jpg";
+import cookeina from "../img/hongos/cookeina.jpg";
+import cookeinaRep from "../img/hongos/cookeina-rep.jpg";
+import cora from "../img/hongos/cora.jpg";
+import everniopsis from "../img/hongos/everniopsis.jpg";
+import ganoderma from "../img/hongos/ganoderma.jpg";
+import ganodermaRep from "../img/hongos/ganoderma-rep.jpg";
+import leptogium from "../img/hongos/leptogium.jpg";
+import parmelia from "../img/hongos/parmelia.jpg";
+import penicillium from "../img/hongos/penicillium.jpg";
+import penicilliumRep from "../img/hongos/penicillium-rep.jpg";
+import ramalina from "../img/hongos/ramalina.jpg";
+import rhizopus from "../img/hongos/rhizopus.jpg";
+import rhizopusRep from "../img/hongos/rhizopus-rep.jpg";
+import saccharomyces from "../img/hongos/saccharomyces.jpg";
+import saccharomycesRep from "../img/hongos/saccharomyces-rep.jpg";
 import type { Band, Group, Topic } from "./types";
 
 const bands: Band[] = [
@@ -6,13 +24,13 @@ const bands: Band[] = [
   { name: "Basidiomycota", span: 2 },
 ];
 
-const groups = (suffix = ""): Group[] => [
-  { name: "Rhizopus", example: "moho negro del pan", img: `/diversidad-vegetal/img/hongos/rhizopus${suffix}.jpg` },
-  { name: "Saccharomyces", example: "levadura", img: `/diversidad-vegetal/img/hongos/saccharomyces${suffix}.jpg` },
-  { name: "Penicillium", example: "y Aspergillus", img: `/diversidad-vegetal/img/hongos/penicillium${suffix}.jpg` },
-  { name: "Cookeina", example: "hongo copa", img: `/diversidad-vegetal/img/hongos/cookeina${suffix}.jpg` },
-  { name: "Agaricus", example: "champiñón", img: `/diversidad-vegetal/img/hongos/agaricus${suffix}.jpg` },
-  { name: "Ganoderma", example: "hongo repisa", img: `/diversidad-vegetal/img/hongos/ganoderma${suffix}.jpg` },
+const groups = (rep: boolean): Group[] => [
+  { name: "Rhizopus", example: "moho negro del pan", img: rep ? rhizopusRep : rhizopus },
+  { name: "Saccharomyces", example: "levadura", img: rep ? saccharomycesRep : saccharomyces },
+  { name: "Penicillium", example: "y Aspergillus", img: rep ? penicilliumRep : penicillium },
+  { name: "Cookeina", example: "hongo copa", img: rep ? cookeinaRep : cookeina },
+  { name: "Agaricus", example: "champiñón", img: rep ? agaricusRep : agaricus },
+  { name: "Ganoderma", example: "hongo repisa", img: rep ? ganodermaRep : ganoderma },
 ];
 
 export const hongos: Topic = {
@@ -25,7 +43,7 @@ export const hongos: Topic = {
       id: "vegetativos",
       title: "Aspectos vegetativos",
       bands,
-      cols: groups(),
+      cols: groups(false),
       rows: [
         {
           label: "Nutrición y pared",
@@ -76,7 +94,7 @@ export const hongos: Topic = {
       id: "reproductivos",
       title: "Aspectos reproductivos",
       bands,
-      cols: groups("-rep"),
+      cols: groups(true),
       rows: [
         {
           label: "Reproducción asexual",
@@ -137,12 +155,12 @@ export const hongos: Topic = {
         { name: "Basidiolíquen", span: 1 },
       ],
       cols: [
-        { name: "Gelatinoso", example: "Leptogium", img: "/diversidad-vegetal/img/hongos/leptogium.jpg" },
-        { name: "Crustáceo", example: "Caloplaca, Graphis", img: "/diversidad-vegetal/img/hongos/caloplaca.jpg" },
-        { name: "Folioso", example: "Parmelia, Sticta", img: "/diversidad-vegetal/img/hongos/parmelia.jpg" },
-        { name: "Fruticuloso", example: "Ramalina, Usnea", img: "/diversidad-vegetal/img/hongos/ramalina.jpg" },
-        { name: "Subfruticuloso", example: "Everniopsis", img: "/diversidad-vegetal/img/hongos/everniopsis.jpg" },
-        { name: "Cora", example: "Cora glabrata", img: "/diversidad-vegetal/img/hongos/cora.jpg" },
+        { name: "Gelatinoso", example: "Leptogium", img: leptogium },
+        { name: "Crustáceo", example: "Caloplaca, Graphis", img: caloplaca },
+        { name: "Folioso", example: "Parmelia, Sticta", img: parmelia },
+        { name: "Fruticuloso", example: "Ramalina, Usnea", img: ramalina },
+        { name: "Subfruticuloso", example: "Everniopsis", img: everniopsis },
+        { name: "Cora", example: "Cora glabrata", img: cora },
       ],
       rows: [
         {

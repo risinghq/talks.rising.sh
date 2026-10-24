@@ -1,6 +1,6 @@
 "use client";
 
-import { Deck } from "@/deck";
+import { Deck } from "@slides/deck";
 import { topicBySlug } from "./topics";
 import { topicSlides } from "./table";
 

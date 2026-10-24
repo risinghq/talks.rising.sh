@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { TopicDeck } from "@/talks/diversidad-vegetal/topic-deck";
-import { topicBySlug, topics } from "@/talks/diversidad-vegetal/topics";
+import { TopicDeck, topicBySlug, topics } from "@slides/diversidad-vegetal";
 
 type Props = { params: Promise<{ tema: string }> };
 

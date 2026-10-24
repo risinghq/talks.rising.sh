@@ -1,2 +1,5 @@
 [tools]
 bun = "1.4.3"
+typst = "0.13.1"
+typstyle = "0.13.18"
+uv = "0.9.5"

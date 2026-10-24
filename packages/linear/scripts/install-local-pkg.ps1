@@ -1,6 +1,6 @@
 # Install Typst package to local packages directory
 
-$sourceDir = Join-Path $PSScriptRoot "..\linear"
+$sourceDir = Join-Path $PSScriptRoot ".."
 $tomlPath = Join-Path $sourceDir "typst.toml"
 
 # Read info from typst.toml
@@ -14,7 +14,7 @@ Write-Host "Installing $packageName v$packageVersion..." -ForegroundColor Cyan
 
 # Create destination and copy files
 New-Item -ItemType Directory -Path $destDir -Force | Out-Null
-Copy-Item -Path "$sourceDir\*" -Destination $destDir -Recurse -Force
+Copy-Item -Path "$sourceDir\*" -Exclude fonts, scripts, mise.toml -Destination $destDir -Recurse -Force
 
 Write-Host "Done! Package installed to: $destDir" -ForegroundColor Green
 Write-Host "`nUse in your .typ files with:" -ForegroundColor Yellow

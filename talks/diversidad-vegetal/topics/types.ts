@@ -1,7 +1,8 @@
 // Each cell is [text, span]. **x** marks a key term. A span over several
 // columns means the trait is shared by those groups.
 export type Row = { label: string; cells: [string, number][] };
-export type Group = { name: string; example: string; img: string };
+// img is a static image import; the site's bundler gives it a hashed URL.
+export type Group = { name: string; example: string; img: { src: string } };
 export type Band = { name: string; sub?: string; span: number };
 
 export type Table = {

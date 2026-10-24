@@ -5,9 +5,10 @@
   ],
   "ignorePatterns": [
     "**/node_modules/**",
-    ".next/**",
-    "out/**",
-    "typst/**"
+    "**/.next/**",
+    "**/out/**",
+    "packages/linear/**",
+    "talks/deploy-django/**"
   ],
   "rules": {
     "unused-exports": "error",

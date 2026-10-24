@@ -2,7 +2,7 @@
 
 $ErrorActionPreference = "Stop"
 
-$sourceDir = Join-Path $PSScriptRoot "..\linear"
+$sourceDir = Join-Path $PSScriptRoot ".."
 $tomlPath = Join-Path $sourceDir "typst.toml"
 
 # Read info from typst.toml

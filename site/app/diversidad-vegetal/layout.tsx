@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "@/talks/diversidad-vegetal/theme.css";
+import "@slides/diversidad-vegetal/theme.css";
 
 export const metadata: Metadata = {
   title: "Diversidad Vegetal · Cuadros comparativos",

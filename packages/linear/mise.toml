@@ -1,0 +1,22 @@
+[tasks.fonts]
+description = "Convert variable fonts to static fonts for Typst"
+run = "cd fonts && uv sync --quiet && uv run convert.py"
+
+[tasks.format]
+description = "Format the theme with typstyle"
+alias = "f"
+run = "typstyle -i ."
+
+[tasks.format-check]
+description = "Check formatting without modifying files"
+run = "typstyle --check ."
+
+[tasks.pkg-install]
+description = "Install linear package to local Typst packages"
+alias = "install"
+run = "pwsh scripts/install-local-pkg.ps1"
+
+[tasks.pkg-uninstall]
+description = "Uninstall linear package from local Typst packages"
+alias = "uninstall"
+run = "pwsh scripts/uninstall-local-pkg.ps1"

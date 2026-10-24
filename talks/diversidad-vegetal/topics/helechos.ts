@@ -1,3 +1,13 @@
+import equisetum from "../img/helechos/equisetum.jpg";
+import equisetumRep from "../img/helechos/equisetum-rep.jpg";
+import lyco from "../img/helechos/lyco.jpg";
+import lycoRep from "../img/helechos/lyco-rep.jpg";
+import marattia from "../img/helechos/marattia.jpg";
+import marattiaRep from "../img/helechos/marattia-rep.jpg";
+import ophioglossum from "../img/helechos/ophioglossum.jpg";
+import ophioglossumRep from "../img/helechos/ophioglossum-rep.jpg";
+import polypodium from "../img/helechos/polypodium.jpg";
+import polypodiumRep from "../img/helechos/polypodium-rep.jpg";
 import type { Band, Group, Topic } from "./types";
 
 const bands: Band[] = [
@@ -5,12 +15,12 @@ const bands: Band[] = [
   { name: "Helechos", sub: "Polypodiopsida", span: 4 },
 ];
 
-const groups = (suffix = ""): Group[] => [
-  { name: "Lycopodiidae", example: "Lycopodium, Selaginella, Isoetes", img: `/diversidad-vegetal/img/helechos/lyco${suffix}.jpg` },
-  { name: "Equisetidae", example: "Equisetum", img: `/diversidad-vegetal/img/helechos/equisetum${suffix}.jpg` },
-  { name: "Ophioglossidae", example: "Ophioglossum", img: `/diversidad-vegetal/img/helechos/ophioglossum${suffix}.jpg` },
-  { name: "Marattiidae", example: "Marattia", img: `/diversidad-vegetal/img/helechos/marattia${suffix}.jpg` },
-  { name: "Polypodiidae", example: "Polypodium, Adiantum, Nephrolepis, Azolla, Cyathea", img: `/diversidad-vegetal/img/helechos/polypodium${suffix}.jpg` },
+const groups = (rep: boolean): Group[] => [
+  { name: "Lycopodiidae", example: "Lycopodium, Selaginella, Isoetes", img: rep ? lycoRep : lyco },
+  { name: "Equisetidae", example: "Equisetum", img: rep ? equisetumRep : equisetum },
+  { name: "Ophioglossidae", example: "Ophioglossum", img: rep ? ophioglossumRep : ophioglossum },
+  { name: "Marattiidae", example: "Marattia", img: rep ? marattiaRep : marattia },
+  { name: "Polypodiidae", example: "Polypodium, Adiantum, Nephrolepis, Azolla, Cyathea", img: rep ? polypodiumRep : polypodium },
 ];
 
 export const helechos: Topic = {
@@ -23,7 +33,7 @@ export const helechos: Topic = {
       id: "vegetativos",
       title: "Aspectos vegetativos",
       bands,
-      cols: groups(),
+      cols: groups(false),
       rows: [
         {
           label: "Fase dominante",
@@ -76,7 +86,7 @@ export const helechos: Topic = {
       id: "reproductivos",
       title: "Aspectos reproductivos",
       bands,
-      cols: groups("-rep"),
+      cols: groups(true),
       rows: [
         {
           label: "Esporangio",

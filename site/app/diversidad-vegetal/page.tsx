@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { topics } from "@/talks/diversidad-vegetal/topics";
+import { topics } from "@slides/diversidad-vegetal";
 
 export default function Home() {
   return (

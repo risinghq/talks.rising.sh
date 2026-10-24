@@ -1,9 +1,9 @@
 *.pdf
-*.ps1
 *.tsbuildinfo
 .cloudflare/
 .fallow/
 .next/
+.venv/
 .wrangler/
 next-env.d.ts
 node_modules/

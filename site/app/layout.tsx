@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "@/deck/styles.css";
+import "@slides/deck/styles.css";
 import "./index.css";
 
 export const metadata: Metadata = {

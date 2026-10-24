@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { EASE, Eyebrow, Foot, R, type Slide } from "@/deck";
+import { EASE, Eyebrow, Foot, R, type Slide } from "@slides/deck";
 import type { Table, Topic } from "./topics/types";
 
 function Rich({ text }: { text: string }) {
@@ -25,7 +25,7 @@ function Grid({ table }: { table: Table }) {
       <div className="cmp-head cmp-label">Característica</div>
       {cols.map((g, c) => (
         <R key={g.name} i={2 + c} className="cmp-head">
-          <img src={g.img} alt={g.name} />
+          <img src={g.img.src} alt={g.name} />
           <span>
             <b>{g.name}</b>
             <small>{g.example}</small>
