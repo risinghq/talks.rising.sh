@@ -1,5 +1,39 @@
+monorepo_root = true
+
+[monorepo]
+config_roots = ["packages/linear", "talks/deploy-django", "talks/deploy-django/proyecto1"]
+
 [tools]
 bun = "1.4.3"
 typst = "0.13.1"
 typstyle = "0.13.18"
 uv = "0.9.5"
+
+[tasks.install]
+description = "Install the Bun workspaces from the lockfile"
+run = "bun install --frozen-lockfile"
+
+[tasks.dev]
+description = "Serve the site with hot reload"
+depends = ["install"]
+run = "bun run --cwd site dev"
+
+[tasks.check]
+description = "Typecheck, find dead code and check formatting"
+depends = ["install", "//...:format-check"]
+run = ["bun run typecheck", "bun run lint:dead"]
+
+[tasks.pdfs]
+description = "Compile the Typst talks into the site's public folder"
+depends = ["//talks/deploy-django:compile"]
+run = "mkdir -p site/public && cp talks/deploy-django/main.pdf site/public/deploy-django.pdf"
+
+[tasks.build]
+description = "Build the static site into site/out"
+depends = ["install", "pdfs"]
+run = "bun run --cwd site build"
+
+[tasks.deploy]
+description = "Build the site and upload it to the Worker"
+depends = ["build"]
+run = "bun run --cwd worker deploy"

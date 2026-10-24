@@ -8,11 +8,8 @@
     "worker"
   ],
   "scripts": {
-    "dev": "bun run --cwd site dev",
-    "build": "bun run --cwd site build",
     "typecheck": "tsc --noEmit",
-    "lint:dead": "fallow audit",
-    "deploy": "bun run build && bun run --cwd worker deploy"
+    "lint:dead": "fallow audit"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

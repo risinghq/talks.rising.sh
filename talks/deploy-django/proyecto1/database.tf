@@ -26,16 +26,16 @@ resource "aws_security_group" "rds_sg" {
 }
 
 resource "aws_db_instance" "main" {
-  identifier           = "django-db-andres"
-  allocated_storage    = 20
-  engine               = "postgres"
-  engine_version       = "16.10"
-  instance_class       = "db.t3.micro"
-  db_name              = "django_db"
-  username             = "postgres_admin"
-  password             = var.db_password
-  db_subnet_group_name = aws_db_subnet_group.default.name
+  identifier             = "django-db-andres"
+  allocated_storage      = 20
+  engine                 = "postgres"
+  engine_version         = "16.10"
+  instance_class         = "db.t3.micro"
+  db_name                = "django_db"
+  username               = "postgres_admin"
+  password               = var.db_password
+  db_subnet_group_name   = aws_db_subnet_group.default.name
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
-  skip_final_snapshot  = true
-  publicly_accessible  = true
+  skip_final_snapshot    = true
+  publicly_accessible    = true
 }

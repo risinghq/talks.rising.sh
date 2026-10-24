@@ -1,0 +1,15 @@
+[tools]
+docker-cli = "28.5.1"
+terraform = "1.13.4"
+
+[tasks.format]
+description = "Format the Terraform files"
+run = "terraform fmt"
+
+[tasks.format-check]
+description = "Check the Terraform formatting"
+run = "terraform fmt -check"
+
+[tasks.image]
+description = "Build the Docker image the talk deploys"
+run = "docker build -t proyecto1-ec2 ."

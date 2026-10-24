@@ -1,12 +1,14 @@
-FROM python:3.12.0-slim
+FROM python:3.14-slim
+COPY --from=ghcr.io/astral-sh/uv:0.9.5 /uv /bin/
 
-RUN apt-get update && apt-get install -y nginx && apt-get clean
+RUN apt-get update && apt-get install -y --no-install-recommends nginx && rm -rf /var/lib/apt/lists/*
 
 ENV PORT=80
+ENV PATH="/app/.venv/bin:$PATH"
 WORKDIR /app
 
-COPY ./requirements.txt /app/
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+COPY pyproject.toml uv.lock /app/
+RUN uv sync --locked --no-dev
 
 COPY ./proyecto1 /app/proyecto1
 COPY ./manage.py /app/

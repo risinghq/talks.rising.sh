@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      bun:
+        patterns: ["*"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: uv
+    directories:
+      - /packages/linear/fonts
+      - /talks/deploy-django/proyecto1
+    schedule:
+      interval: weekly
+    groups:
+      uv:
+        patterns: ["*"]
+
+  - package-ecosystem: docker
+    directory: /talks/deploy-django/proyecto1
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: terraform
+    directory: /talks/deploy-django/proyecto1
+    schedule:
+      interval: weekly

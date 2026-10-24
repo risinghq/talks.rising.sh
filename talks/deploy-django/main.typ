@@ -34,7 +34,7 @@
 )[
   Para este workshop vamos a necesitar:
 
-  - Python 3.x (para trabajar de forma local)
+  - uv (para instalar Python y las dependencias del proyecto)
   - AWS CLI (para conectarnos con Amazon Web Services)
   - GitHub CLI (gh) (para gestionar nuestros repositorios)
 
@@ -43,7 +43,8 @@
   Empecemos verificando qué tienes ya instalado. Abre tu terminal (PowerShell o CMD en Windows, Terminal en Mac/Linux) y ejecuta estos comandos uno por uno:
 
   ```bash
-  python --version || python3 --version
+  # Verifica si tienes uv
+  uv --version
 
   # Verifica si tienes AWS CLI
   aws --version
@@ -62,16 +63,16 @@
 
   Mmm... así que te faltan algunas herramientas. Tienes dos opciones (personalmente te recomiendo usar la primera opción):
 
-  1. Si te falta alguna herramienta, te recomiendo usar #link("[https://mise.jdx.dev/getting-started.html")[mise]. Es práctico y te permite instalar y gestionar todas las dependencias necesarias *con un solo comando*, además de cambiar fácilmente de versión según el proyecto.
+  1. Si te falta alguna herramienta, te recomiendo usar #link("https://mise.jdx.dev/getting-started.html")[mise]. Es práctico y te permite instalar y gestionar todas las dependencias necesarias *con un solo comando*, además de cambiar fácilmente de versión según el proyecto.
 
     #linear.callout(title: [Ventajas de usar mise])[
-      - Gestiona Python, AWS CLI y GitHub CLI desde un mismo lugar
+      - Gestiona uv, AWS CLI y GitHub CLI desde un mismo lugar
       - Permite cambiar de versión fácilmente según el proyecto
       - Es más intuitiva que alternativas como pyenv o asdf (además de que solo sirven para Python)
       - No necesita permisos de administrador
     ]
 
-  2. También puedes instalar cada herramienta *manualmente* por separado desde sus páginas oficiales: #link("https://www.python.org/downloads/")[python.org], #link("https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")[aws.amazon.com/cli], #link("https://cli.github.com/")[cli.github.com]
+  2. También puedes instalar cada herramienta *manualmente* por separado desde sus páginas oficiales: #link("https://docs.astral.sh/uv/getting-started/installation/")[docs.astral.sh/uv], #link("https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html")[aws.amazon.com/cli], #link("https://cli.github.com/")[cli.github.com]
 ]
 
 #linear.section-slide[Proyecto \#0: Django (boilerplate)]
@@ -86,42 +87,31 @@
   1. Crear la carpeta del proyecto
     #block(width: 80%)[
       ```bash
-      mkdir ejemplo && cd ejemplo
+      mkdir proyecto1 && cd proyecto1
+      uv init --bare
       ```
     ]
 
-    Esto crea una carpeta vacía donde guardaremos todo el código.
+    Esto crea una carpeta con un `pyproject.toml`, el archivo que describe el proyecto y sus dependencias.
     Mantener cada proyecto en su propio directorio evita confusiones y mezclas de archivos.
 
-  2. Crear un entorno virtual
+  2. Instalar dependencias básicas
     #block(width: 80%)[
       ```bash
-      python -m venv venv
-      source venv/bin/activate  # En Windows usa: venv\Scripts\activate
+      uv add django gunicorn psycopg2-binary
       ```
     ]
-
-    El entorno virtual aísla las dependencias del proyecto.
-    Esto evita conflictos entre versiones de librerías en distintos proyectos.
-
-  3. Instalar dependencias básicas
-    #block(width: 80%)[
-      ```bash
-      python -m pip install django gunicorn psycopg2-binary
-      ```
-    ]
-    Se instalan tres paquetes esenciales:
+    uv crea el entorno virtual `.venv`, que aísla las dependencias del proyecto, y guarda las versiones exactas en `uv.lock`. Se instalan tres paquetes esenciales:
 
     - django: framework principal
     - gunicorn: servidor de producción
     - psycopg2-binary: conector para bases de datos PostgreSQL
       Empezar con estas dependencias desde el inicio permite usar la misma base tanto en desarrollo como en producción.
 
-  4. Crear el proyecto Django
+  3. Crear el proyecto Django
     #block(width: 80%)[
       ```bash
-      python -m django startproject proyecto1
-      cd proyecto1
+      uv run django-admin startproject proyecto1 .
       ```
     ]
     Este comando genera la estructura inicial del proyecto con los archivos de configuración y el servidor de desarrollo.
@@ -134,7 +124,7 @@
   Antes de levantar el servidor local, aplicamos las migraciones
   #block(width: 80%)[
     ```bash
-    python manage.py migrate
+    uv run python manage.py migrate
     ```
   ]
   Esto crea la base de datos inicial que Django necesita para manejar usuarios, sesiones y otros componentes internos. Por si acaso, esto forma parte de la plantilla generada por Django. No vamos a tocar bases de datos en este workshop.
@@ -142,7 +132,7 @@
   Ahora, podemos ejecutar el servidor local
   #block(width: 80%)[
     ```bash
-    python manage.py runserver
+    uv run python manage.py runserver
     ```
   ]
   Este comando inicia el servidor de desarrollo.
@@ -153,11 +143,7 @@
   Finalmente, podemos probar en el navegador:
   #link("http://127.0.0.1:8000/")[http://127.0.0.1:8000/]. Si aparece la página de inicio de Django, el entorno está correctamente configurado.
 
-  Para guardar las dependencias:
-
-  ```bash
-  pip freeze > requirements.txt
-  ```
+  Sube `pyproject.toml` y `uv.lock` al repositorio: con ellos, `uv sync` instala las mismas versiones en cualquier máquina.
 
   #image("img/local.png", width: 100%)
 ]
@@ -220,26 +206,31 @@
   subtitle: [El Dockerfile],
 )[
   ```dockerfile
-  FROM python:3.14.0-slim
+  FROM python:3.14-slim
+  COPY --from=ghcr.io/astral-sh/uv:0.9.5 /uv /bin/
 
   # Puerto en el que el contenedor expone a la aplicación
   ENV PORT=8080
+  # Usar el entorno virtual que crea uv
+  ENV PATH="/app/.venv/bin:$PATH"
 
   # Carpeta de trabajo dentro del contenedor
   WORKDIR /app
 
-  COPY ./requirements.txt /app/
-  # Instalar dependencias
-  RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+  # Instalar las versiones exactas de uv.lock
+  COPY pyproject.toml uv.lock /app/
+  RUN uv sync --locked --no-dev
 
   # Copiar el proyecto
-  COPY ./proyecto1 /app
+  COPY . /app
 
   EXPOSE ${PORT}
   CMD ["gunicorn", "proyecto1.wsgi:application", "--bind", "0.0.0.0:8080"]
   ```
 
   Cada línea es una capa. Docker cachea cada capa para acelerar los siguientes builds.
+
+  Crea también un archivo `.dockerignore` con la línea `.venv`, para que `COPY . /app` no copie tu entorno local encima del que instaló uv.
 ]
 
 #linear.slide(
@@ -251,7 +242,7 @@
     column-widths: (20%, 80%),
     rows: (
       [#raw("FROM")],
-      [Imagen base del sistema operativo y runtime. Ejemplo: `python:3.14.0-slim-bullseye`],
+      [Imagen base del sistema operativo y runtime. Ejemplo: `python:3.14-slim`],
       [#raw("WORKDIR")],
       [Directorio de trabajo dentro del contenedor. Crea el directorio si no existe],
       [#raw("ENV")],
@@ -259,7 +250,7 @@
       [#raw("COPY")],
       [Copia archivos desde tu máquina al contenedor. Ejemplo: `COPY . /app/`],
       [#raw("RUN")],
-      [Ejecuta comandos durante la construcción. Ejemplo: `pip install -r requirements.txt`],
+      [Ejecuta comandos durante la construcción. Ejemplo: `uv sync --locked`],
       [#raw("CMD")],
       [Comando que se ejecuta al iniciar el contenedor. Solo puede haber uno],
       [#raw("EXPOSE")],
@@ -1476,8 +1467,8 @@
 
     Ahora sí, ejecuta los comandos de Django:
     ```bash
-    python manage.py migrate
-    python manage.py createsuperuser
+    uv run python manage.py migrate
+    uv run python manage.py createsuperuser
     ```
 
     Ahora, si te diriges a http://XX.XXX.XX.XXX/admin/login/, deberías ver la página de inicio de sesión de Django. Inicia sesión con el usuario creado anteriormente y la contraseña que definiste.
@@ -1641,7 +1632,7 @@
     Luego ejecuta:
 
     ```bash
-    python manage.py collectstatic
+    uv run python manage.py collectstatic
     ```
 
     Esto generará la carpeta `staticfiles`.

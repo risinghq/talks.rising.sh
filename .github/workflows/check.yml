@@ -21,17 +21,12 @@ jobs:
           # fallow audit compares against the merge-base, which a shallow clone lacks.
           fetch-depth: 0
       - uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
-      - run: bun install --frozen-lockfile
-      - run: bun run typecheck
-      - run: bun run lint:dead
-      - run: bun run build
+      - run: mise run check
+      - run: mise run build
 
-  typst:
+  image:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: jdx/mise-action@fc42bcc7ddbf51124c30f95a877a0c5168a3bfde # v5.2.1
-      - run: typstyle --check packages/linear talks/deploy-django/main.typ
-      - run: uv run convert.py
-        working-directory: packages/linear/fonts
-      - run: typst compile --root . --font-path packages/linear/fonts talks/deploy-django/main.typ
+      - run: mise //talks/deploy-django/proyecto1:image

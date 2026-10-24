@@ -44,7 +44,7 @@ wheels = [
 ]
 
 [[package]]
-name = "typst-fonts"
+name = "linear-fonts"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

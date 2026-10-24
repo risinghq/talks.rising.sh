@@ -1,11 +1,8 @@
 [project]
-name = "typst-fonts"
+name = "linear-fonts"
 version = "0.1.0"
-description = "Font tooling for Typst variable font conversion"
+description = "Converts the Geist variable fonts to the static fonts Typst needs"
 requires-python = ">=3.12"
 dependencies = [
     "fonttools>=4.47.0",
 ]
-
-[project.scripts]
-setup-fonts = "setup:main"
