@@ -27,25 +27,25 @@ run = "typstyle --check ."
 [tasks.compile]
 description = "Compile Typst document to PDF"
 alias = "c"
-run = "typst compile --font-path fonts example.typ"
+run = "typst compile --font-path fonts main.typ"
 
 [tasks.compile-html]
 description = "Compile Typst document to HTML (experimental)"
 alias = "ch"
 run = [
-  "typst compile --features html --font-path fonts --format html example.typ example.html",
+  "typst compile --features html --font-path fonts --format html main.typ main.html",
 ]
 
 [tasks.watch]
 description = "Watch and auto-compile on changes (PDF)"
 alias = "w"
-run = "typst watch --font-path fonts example.typ"
+run = "typst watch --font-path fonts main.typ"
 
 [tasks.watch-html]
 description = "Watch Typst document and serve HTML with live reload (experimental)"
 alias = "wh"
 run = [
-  "typst watch --features html --font-path fonts --format html --port 3000 example.typ example.html",
+  "typst watch --features html --font-path fonts --format html --port 3000 main.typ main.html",
 ]
 
 # Development & live preview
@@ -53,13 +53,13 @@ run = [
 [tasks.dev]
 description = "Development mode with file watching (PDF)"
 alias = "d"
-run = "typst watch --font-path fonts example.typ --open"
+run = "typst watch --font-path fonts main.typ --open"
 
 [tasks.dev-html]
 description = "Development mode with HTML live server (experimental)"
 alias = "dh"
 run = [
-  "typst watch --features html --font-path fonts --format html --port 3000 --open example.typ example.html",
+  "typst watch --features html --font-path fonts --format html --port 3000 --open main.typ main.html",
 ]
 
 # Package management
@@ -79,10 +79,8 @@ run = "pwsh scripts/uninstall-local-pkg.ps1"
 [tasks.clean]
 description = "Remove generated PDF and HTML files"
 run = [
-  "rm -f example.pdf",
-  "rm -f main.pdf",
   "rm -f *.pdf",
-  "rm -f example.html",
+  "rm -f main.html",
 ]
 
 [tasks.export]
