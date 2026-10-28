@@ -207,7 +207,7 @@
 )[
   ```dockerfile
   FROM python:3.14-slim
-  COPY --from=ghcr.io/astral-sh/uv:0.9.5 /uv /bin/
+  COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /bin/
 
   # Puerto en el que el contenedor expone a la aplicación
   ENV PORT=8080
