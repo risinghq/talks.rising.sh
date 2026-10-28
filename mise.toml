@@ -4,10 +4,10 @@ monorepo_root = true
 config_roots = ["packages/linear", "talks/deploy-django", "talks/deploy-django/proyecto1"]
 
 [tools]
-bun = "1.4.3"
-typst = "0.13.1"
-typstyle = "0.13.18"
-uv = "0.9.5"
+bun = "1.4.4"
+typst = "0.15.1"
+typstyle = "0.15.2"
+uv = "0.13.6"
 
 [tasks.install]
 description = "Install the Bun workspaces from the lockfile"

@@ -1,6 +1,6 @@
 [tools]
-docker-cli = "28.5.1"
-terraform = "1.13.4"
+docker-cli = "29.9.2"
+terraform = "1.17.0"
 
 [tasks.format]
 description = "Format the Terraform files"
