@@ -1,20 +1,17 @@
 version: 2
 updates:
   - package-ecosystem: bun
-    directory: /
+    directories:
+      - /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
-      bun:
-        patterns: ["*"]
-
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-    groups:
-      actions:
-        patterns: ["*"]
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: uv
     directories:
@@ -22,16 +19,38 @@ updates:
       - /talks/deploy-django/proyecto1
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     groups:
-      uv:
-        patterns: ["*"]
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: docker
-    directory: /talks/deploy-django/proyecto1
+    directories:
+      - /talks/deploy-django/proyecto1
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      all:
+        update-types:
+          - major
+          - minor
+          - patch
 
-  - package-ecosystem: terraform
-    directory: /talks/deploy-django/proyecto1
+  - package-ecosystem: github-actions
+    directories:
+      - /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      all:
+        update-types:
+          - major
+          - minor
+          - patch
