@@ -3,12 +3,15 @@
   "entry": [
     "worker/*.config.ts"
   ],
+  "ignoreDependencies": [
+    "@shikijs/rehype",
+    "remark-gfm"
+  ],
   "ignorePatterns": [
     "**/node_modules/**",
     "**/.next/**",
     "**/out/**",
-    "packages/linear/**",
-    "talks/deploy-django/**"
+    "talks/deploy-django/proyecto1/**"
   ],
   "rules": {
     "unused-exports": "error",

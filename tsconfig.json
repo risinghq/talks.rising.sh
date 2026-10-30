@@ -11,8 +11,9 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowJs": false
+    "allowJs": false,
+    "types": ["mdx"]
   },
-  "include": ["packages/deck", "talks/diversidad-vegetal", "site"],
+  "include": ["packages/deck", "talks/deploy-django", "talks/diversidad-vegetal", "site"],
   "exclude": ["**/node_modules", "site/.next", "site/out"]
 }

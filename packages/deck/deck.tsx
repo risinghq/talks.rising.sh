@@ -34,10 +34,17 @@ export function Deck({ slides }: { slides: Slide[] }) {
     });
   }, []);
 
+  // An agenda links to "#N". replaceState below fires no hashchange, so this
+  // follows only a link or a typed hash.
   useEffect(() => {
-    const fromHash = Number.parseInt(location.hash.slice(1), 10);
-    if (fromHash > 0) setState([Math.min(slides.length, fromHash) - 1, 1]);
-  }, []);
+    const fromHash = () => {
+      const n = Number.parseInt(location.hash.slice(1), 10);
+      if (n > 0) go(Math.min(slides.length, n) - 1);
+    };
+    fromHash();
+    addEventListener("hashchange", fromHash);
+    return () => removeEventListener("hashchange", fromHash);
+  }, [go]);
 
   useEffect(() => {
     history.replaceState(null, "", `#${index + 1}`);
@@ -69,7 +76,10 @@ export function Deck({ slides }: { slides: Slide[] }) {
 
   return (
     <>
-      <div className="viewport" onClick={(e) => go(e.clientX > innerWidth / 2 ? index + 1 : index - 1)}>
+      <div className="viewport" onClick={(e) => {
+          if ((e.target as Element).closest("a")) return;
+          go(e.clientX > innerWidth / 2 ? index + 1 : index - 1);
+        }}>
         <div className="stage" style={{ transform: `translate(-50%, -50%) scale(${scale})` }}>
           <AnimatePresence initial={false} custom={dir} mode="popLayout">
             <motion.section
