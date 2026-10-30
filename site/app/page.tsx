@@ -1,6 +1,6 @@
 const talks = [
   { href: "/diversidad-vegetal/", tag: "UNMSM", name: "Diversidad Vegetal", summary: "Cuadros comparativos de hongos y líquenes, briofitos y helechos." },
-  { href: "/deploy-django.pdf", tag: "PDF", name: "Deploy en la nube", summary: "Django en AWS con Docker, Terraform y nginx." },
+  { href: "/deploy-django/", tag: "Workshop", name: "Deploy en la nube", summary: "Django en AWS con Docker, Terraform y nginx." },
 ];
 
 export default function Home() {

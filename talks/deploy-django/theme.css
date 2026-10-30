@@ -1,0 +1,6 @@
+/* A cool grey canvas with an indigo accent. */
+.theme-deploy-django {
+  --canvas: #f8f8fa; --surface: #eef0f4; --ink: #1b1c22; --muted: #5d616c; --line: #d9dce3;
+  --accent: #5e6ad2; --backdrop: #e3e5eb;
+}
+.theme-deploy-django .slide.dark { --accent: #9aa3ff; --muted: #a9adba; }

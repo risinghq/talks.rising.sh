@@ -1,12 +1,10 @@
 monorepo_root = true
 
 [monorepo]
-config_roots = ["packages/linear", "talks/deploy-django", "talks/deploy-django/proyecto1"]
+config_roots = ["talks/deploy-django/proyecto1"]
 
 [tools]
 bun = "1.4.4"
-typst = "0.15.1"
-typstyle = "0.15.2"
 uv = "0.13.6"
 
 [tasks.install]
@@ -23,14 +21,9 @@ description = "Typecheck, find dead code and check formatting"
 depends = ["install", "//...:format-check"]
 run = ["bun run typecheck", "bun run lint:dead"]
 
-[tasks.pdfs]
-description = "Compile the Typst talks into the site's public folder"
-depends = ["//talks/deploy-django:compile"]
-run = "mkdir -p site/public && cp talks/deploy-django/main.pdf site/public/deploy-django.pdf"
-
 [tasks.build]
 description = "Build the static site into site/out"
-depends = ["install", "pdfs"]
+depends = ["install"]
 run = "bun run --cwd site build"
 
 [tasks.deploy]

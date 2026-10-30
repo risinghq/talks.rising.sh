@@ -4,6 +4,8 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
+    "./mdx": "./mdx.tsx",
+    "./mdx.css": "./mdx.css",
     "./styles.css": "./styles.css"
   },
   "dependencies": {

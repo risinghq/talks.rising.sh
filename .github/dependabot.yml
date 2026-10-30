@@ -15,7 +15,6 @@ updates:
 
   - package-ecosystem: uv
     directories:
-      - /packages/linear/fonts
       - /talks/deploy-django/proyecto1
     schedule:
       interval: weekly

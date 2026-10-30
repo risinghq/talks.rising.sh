@@ -15,7 +15,7 @@ const reveal: Variants = {
   }),
 };
 
-export function R({ i = 0, children, className, style, as = "div" }: { i?: number; children: ReactNode; className?: string; style?: CSSProperties; as?: "div" | "span" | "p" | "h1" | "h2" }) {
+export function R({ i = 0, children, className, style, as = "div" }: { i?: number; children?: ReactNode; className?: string; style?: CSSProperties; as?: "div" | "span" | "p" | "h1" | "h2" }) {
   const C = motion[as];
   return (
     <C className={className} style={style} variants={reveal} custom={i} initial="hidden" animate="show">

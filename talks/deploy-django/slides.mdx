@@ -1,0 +1,2028 @@
+import { Agenda, Callout, Col, Columns, Content, Figure, Focus, Picture, Section, Title } from "@slides/deck/mdx";
+import awsCli from "./img/awscli.png";
+import awsCred from "./img/aws-cred.png";
+import awsEcr from "./img/aws-ecr.png";
+import awsIam from "./img/aws-iam.png";
+import iam1 from "./img/iam/1.png";
+import iam2 from "./img/iam/2.png";
+import iam3 from "./img/iam/3.png";
+import iam4 from "./img/iam/4.png";
+import iam5 from "./img/iam/5.png";
+import iam6 from "./img/iam/6.png";
+import iam7 from "./img/iam/7.png";
+import iam8 from "./img/iam/8.png";
+import kms1 from "./img/aws-kms-1.png";
+import kms2 from "./img/aws-kms-2.png";
+import kms3 from "./img/aws-kms-3.png";
+import kms4 from "./img/aws-kms-4.png";
+import sm1 from "./img/aws-sm-1.png";
+import sm2 from "./img/aws-sm-2.png";
+import cloudwatchDiagram from "./img/cloudwatch-diagram.png";
+import cloudwatchLogs from "./img/cloudwatch-logs.jpg";
+import diagram from "./img/diagram.png";
+import docker from "./img/docker.png";
+import finalArchitecture from "./img/final-architecture.png";
+import flowDiagram from "./img/flow-diagram.png";
+import local from "./img/local.png";
+import server from "./img/server.png";
+import version from "./img/version.png";
+
+<Title title="Cómo hacer deploy en la nube… ☁️" subtitle="Stack: AWS (EC2, Cloudwatch) + Django + Docker + Terraform + nginx" />
+
+<Agenda title="La agenda para hoy incluye:" />
+
+<Content title="Introducción" subtitle="El resultado final">
+
+Vamos a trabajar con dos proyectos basados en Django. Como asumiré que ya manejan este framework, podremos concentrarnos directamente en los aspectos del deploy (o _despliegue_). Gran parte de lo que veremos hoy también es aplicable a otros frameworks como React, Next.js o Astro.
+
+El plan es:
+
+- Dockerizar ambos proyectos y desplegarlos en Amazon EC2
+- Configurar un dominio personalizado con certificado HTTPS
+- Gestionar toda la infraestructura usando Terraform
+
+<Callout title="Importante">
+
+El workshop está diseñado para que no tenga costo alguno. A menos que necesites escalar para más de 100 usuarios concurrentes, el tier gratuito de AWS será más que suficiente.
+
+</Callout>
+
+</Content>
+
+<Content title="Introducción" subtitle="Preparación del entorno de trabajo">
+
+<Columns>
+<Col>
+
+Para este workshop vamos a necesitar:
+
+- uv (para instalar Python y las dependencias del proyecto)
+- AWS CLI (para conectarnos con Amazon Web Services)
+- GitHub CLI (gh) (para gestionar nuestros repositorios)
+
+Además, usaremos nginx, Docker y Terraform, aunque no será necesario instalarlos localmente.
+
+</Col>
+<Col>
+
+Abre tu terminal (PowerShell o CMD en Windows, Terminal en Mac/Linux) y verifica qué tienes ya instalado:
+
+```bash
+# Verifica si tienes uv
+uv --version
+
+# Verifica si tienes AWS CLI
+aws --version
+
+# Verifica si tienes GitHub CLI
+gh --version
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Introducción" subtitle="¿Ves los números de versión?">
+
+<Figure src={version} alt="La terminal muestra la versión de uv, AWS CLI y GitHub CLI" />
+
+Si aparecen números de versión, ¡genial! Esa herramienta está lista. Si en cambio ves un error o el comando no existe, necesitas instalarla. Si ya tienes todo configurado, salta a la siguiente sección.
+
+</Content>
+
+<Content title="Introducción" subtitle="¿Te faltan herramientas?">
+
+Tienes dos opciones (te recomiendo la primera):
+
+1. Usar [mise](https://mise.jdx.dev/getting-started.html). Instala y gestiona todas las dependencias **con un solo comando**, y cambia fácilmente de versión según el proyecto.
+2. Instalar cada herramienta **manualmente** desde su página oficial: [docs.astral.sh/uv](https://docs.astral.sh/uv/getting-started/installation/), [aws.amazon.com/cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), [cli.github.com](https://cli.github.com/)
+
+<Callout title="Ventajas de usar mise">
+
+- Gestiona uv, AWS CLI y GitHub CLI desde un mismo lugar
+- Permite cambiar de versión fácilmente según el proyecto
+- Es más intuitiva que alternativas como pyenv o asdf (que además solo sirven para Python)
+- No necesita permisos de administrador
+
+</Callout>
+
+</Content>
+
+<Section>Proyecto #0: Django (boilerplate)</Section>
+
+<Content title="Django" subtitle="Configuración inicial">
+
+<Columns>
+<Col>
+
+Vamos a crear un proyecto base de Django desde cero. Servirá para entender la estructura y preparar el entorno.
+
+1. Crear la carpeta del proyecto:
+
+```bash
+mkdir proyecto1 && cd proyecto1
+uv init --bare
+```
+
+Esto crea un `pyproject.toml`, el archivo que describe el proyecto y sus dependencias. Cada proyecto en su propio directorio evita mezclar archivos.
+
+</Col>
+<Col>
+
+2. Instalar las dependencias básicas:
+
+```bash
+uv add django gunicorn psycopg2-binary
+```
+
+uv crea el entorno virtual `.venv` y guarda las versiones exactas en `uv.lock`:
+
+- django: framework principal
+- gunicorn: servidor de producción
+- psycopg2-binary: conector para PostgreSQL
+
+Así desarrollo y producción usan la misma base.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Django" subtitle="Crear el proyecto y migrar">
+
+3. Crear el proyecto Django:
+
+```bash
+uv run django-admin startproject proyecto1 .
+```
+
+Este comando genera la estructura inicial con los archivos de configuración y el servidor de desarrollo.
+
+Antes de levantar el servidor local, aplicamos las migraciones:
+
+```bash
+uv run python manage.py migrate
+```
+
+Esto crea la base de datos inicial que Django necesita para usuarios, sesiones y otros componentes internos. Forma parte de la plantilla de Django; no vamos a tocar bases de datos todavía.
+
+</Content>
+
+<Content title="Django" subtitle="Ejecutar localmente">
+
+<Columns>
+<Col>
+
+Ejecutamos el servidor de desarrollo. No se usa en producción, pero permite probar la aplicación localmente:
+
+```bash
+uv run python manage.py runserver
+```
+
+<Figure src={server} alt="La terminal muestra el servidor de desarrollo de Django en marcha" />
+
+</Col>
+<Col>
+
+Prueba en el navegador: [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Si aparece la página de inicio de Django, el entorno está listo.
+
+<Figure src={local} alt="La página de inicio de Django en el navegador" />
+
+Sube `pyproject.toml` y `uv.lock` al repositorio: con ellos, `uv sync` instala las mismas versiones en cualquier máquina.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Section>Herramienta #1: Docker</Section>
+
+<Content title="Docker" subtitle="¿Por qué usarlo?">
+
+<Columns>
+<Col>
+
+**Sin Docker:**
+
+- Configurar manualmente cada servidor
+- Instalar dependencias (Python, nginx, etc.)
+- Ajustar según el sistema operativo
+- Inconsistencias entre entornos
+- "Funciona en mi máquina, pero no en producción"
+
+</Col>
+<Col>
+
+**Con Docker:**
+
+- Empaquetas la app junto con sus dependencias
+- La misma imagen funciona en cualquier entorno
+- Despliegues consistentes
+- Aislamiento entre aplicaciones
+
+</Col>
+</Columns>
+
+<Callout title="¡No te abrumes!">
+
+No necesitas instalar Docker en tu máquina: consume bastantes recursos y las imágenes necesarias ya están en Docker Hub. Tampoco memorices cada comando. Lo importante es entender **qué parámetros ajustar y cuándo**; tu Dockerfile será muy similar entre proyectos.
+
+</Callout>
+
+</Content>
+
+<Content title="Docker" subtitle="Conceptos básicos">
+
+**Imagen**: paquete inmutable con tu aplicación, sus dependencias, la configuración y el sistema operativo base. Se construye una vez con `docker build`.
+
+**Contenedor**: instancia ejecutable de una imagen. Cada `docker run` crea un contenedor nuevo, y puedes tener varios de la misma imagen.
+
+**Dockerfile**: archivo de texto con las instrucciones para construir una imagen paso a paso.
+
+<Figure src={docker} alt="Un Dockerfile se construye en una imagen, y la imagen se ejecuta como contenedores" />
+
+</Content>
+
+<Content title="Docker" subtitle="El Dockerfile">
+
+<Columns split="5fr 2fr">
+<Col>
+
+```dockerfile
+FROM python:3.14-slim
+COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /bin/
+
+# Puerto de la aplicación y entorno virtual que crea uv
+ENV PORT=8080
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Carpeta de trabajo dentro del contenedor
+WORKDIR /app
+
+# Instalar las versiones exactas de uv.lock
+COPY pyproject.toml uv.lock /app/
+RUN uv sync --locked --no-dev
+
+# Copiar el proyecto
+COPY . /app
+
+EXPOSE ${PORT}
+CMD ["gunicorn", "proyecto1.wsgi:application", "--bind", "0.0.0.0:8080"]
+```
+
+</Col>
+<Col>
+
+Cada línea es una capa. Docker cachea cada capa para acelerar los siguientes builds.
+
+Crea también un archivo `.dockerignore` con la línea `.venv`, para que `COPY . /app` no copie tu entorno local encima del que instaló uv.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Docker" subtitle="Comandos del Dockerfile">
+
+| Comando | Descripción |
+| --- | --- |
+| `FROM` | Imagen base del sistema operativo y runtime. Ejemplo: `python:3.14-slim` |
+| `WORKDIR` | Directorio de trabajo dentro del contenedor. Lo crea si no existe |
+| `ENV` | Variables de entorno disponibles durante el build y la ejecución |
+| `COPY` | Copia archivos desde tu máquina al contenedor. Ejemplo: `COPY . /app/` |
+| `RUN` | Ejecuta comandos durante la construcción. Ejemplo: `uv sync --locked` |
+| `CMD` | Comando que se ejecuta al iniciar el contenedor. Solo puede haber uno |
+| `EXPOSE` | Documenta el puerto que usa la aplicación. No lo publica automáticamente |
+
+</Content>
+
+<Content title="Docker" subtitle="Build vs runtime">
+
+<Columns>
+<Col>
+
+**Build time** (`docker build`):
+
+- Se ejecutan: `FROM`, `WORKDIR`, `COPY`, `RUN`, `ENV`
+- Resultado: una imagen inmutable
+- Se ejecuta una vez (o cuando cambias el Dockerfile)
+- Usa la caché de capas para acelerar
+
+</Col>
+<Col>
+
+**Runtime** (`docker run`):
+
+- Se ejecuta: `CMD`
+- Resultado: un contenedor en ejecución
+- Cada `docker run` crea un contenedor nuevo
+- El contenedor se detiene cuando termina el proceso de `CMD`
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Docker" subtitle="Comandos">
+
+<Columns>
+<Col>
+
+Con el Dockerfile listo, construye la imagen:
+
+```bash
+docker build -t proyecto1-ec2:latest .
+```
+
+Y ejecuta el contenedor:
+
+```bash
+docker run -d -p 8000:8080 proyecto1-ec2:latest
+```
+
+Esto enlaza el puerto 8080 del contenedor con el puerto 8000 de tu máquina: la aplicación queda en [http://localhost:8000](http://localhost:8000).
+
+</Col>
+<Col>
+
+Para detener el contenedor:
+
+```bash
+docker ps
+docker kill <container_id>
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Section>Herramienta #2: AWS CLI</Section>
+
+<Content title="AWS CLI" subtitle="AWS ECR">
+
+Ahora que tenemos la imagen Docker en nuestro equipo, hay que subirla a la nube para que el servidor pueda descargarla y ejecutarla. En AWS, esto se hace con el **Elastic Container Registry (ECR)**.
+
+Si aún no tienes una cuenta en AWS, puedes crear una gratis en [AWS Educate](https://aws.amazon.com/education/awseducate/) o en el [AWS Free Tier](https://aws.amazon.com/free/).
+
+Un registro en ECR se crea a mano desde la consola de AWS o con código:
+
+<Columns>
+<Col>
+
+**Manual (desventajas):**
+
+- No es repetible
+- No tiene historial de cambios
+- Es difícil de compartir con el equipo
+- No se revisa en code review
+
+</Col>
+<Col>
+
+**Con código (recomendado):**
+
+- Es repetible
+- Se versiona con git
+- Se revisa en code review
+- El código sirve como documentación
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Instalar AWS CLI">
+
+Hoy lo haremos con código. Primero, instala [AWS CLI](https://awscli.amazonaws.com/AWSCLIV2.msi) en tu PC y verifica la instalación:
+
+```bash
+aws --version
+```
+
+<Figure src={awsCli} alt="El instalador de AWS CLI" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Iniciar sesión">
+
+Antes de subir la imagen a ECR, iniciamos sesión en AWS desde la terminal.
+
+1. Ve a la sección de usuarios del [IAM Dashboard](https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-2#/users) y crea un usuario, o revisa que tu usuario ya tenga credenciales. Si generas credenciales por primera vez, escoge **"Log in as root user"**.
+2. Las siguientes diapositivas muestran el proceso paso a paso. Solo se hace una vez: podrás reutilizar las credenciales mientras trabajes en la misma región.
+
+<Callout title="Ten cuidado">
+
+Las credenciales son privadas y no deben compartirse con nadie. Elimínalas al terminar el workshop si no las usarás en otro proyecto.
+
+</Callout>
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear credenciales: la consola de IAM">
+
+<Figure src={awsIam} alt="La consola de IAM" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear credenciales: paso 1 de 8">
+
+<Figure src={iam1} alt="Paso 1 de la creación de credenciales en IAM" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear credenciales: paso 2 de 8">
+
+<Figure src={iam2} alt="Paso 2 de la creación de credenciales en IAM" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear credenciales: paso 3 de 8">
+
+<Figure src={iam3} alt="Paso 3 de la creación de credenciales en IAM" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear credenciales: paso 4 de 8">
+
+<Figure src={iam4} alt="Paso 4 de la creación de credenciales en IAM" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear credenciales: paso 5 de 8">
+
+<Figure src={iam5} alt="Paso 5 de la creación de credenciales en IAM" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear credenciales: paso 6 de 8">
+
+<Figure src={iam6} alt="Paso 6 de la creación de credenciales en IAM" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear credenciales: paso 7 de 8">
+
+<Figure src={iam7} alt="Paso 7 de la creación de credenciales en IAM" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear credenciales: paso 8 de 8">
+
+<Figure src={iam8} alt="Paso 8 de la creación de credenciales en IAM" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Configurar las credenciales">
+
+3. Configura tus credenciales de AWS en la terminal:
+
+```bash
+aws configure
+```
+
+Te pedirá tu **AWS Access Key ID** y tu **AWS Secret Access Key**, obtenidas en el paso anterior. Como región, escribe "us-east-2".
+
+4. Verifica que la configuración es correcta:
+
+```bash
+aws sts get-caller-identity # Muestra tu ID de usuario, cuenta y ARN
+```
+
+<Figure src={awsCred} alt="La salida de aws sts get-caller-identity" />
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Crear un repositorio en ECR">
+
+Con la cuenta configurada, creamos un repositorio en ECR:
+
+```bash
+aws ecr create-repository --repository-name proyecto1-ec2
+```
+
+Devuelve un objeto JSON con el repositorio creado:
+
+```json
+{
+  "repository": {
+    "repositoryArn": "arn:aws:ecr:us-east-2:***:repository/proyecto1-ec2",
+    "registryId": "***",
+    "repositoryName": "proyecto1-ec2",
+    "repositoryUri": "***.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2",
+    "createdAt": "20XX-XX-XXTXX:XX:XX.XXX000-05:00",
+    "imageTagMutability": "MUTABLE",
+    "imageScanningConfiguration": { "scanOnPush": false },
+    "encryptionConfiguration": { "encryptionType": "AES256" }
+  }
+}
+```
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Guardar la URI del repositorio">
+
+<Callout title="Importante">
+
+Guarda el valor **repositoryUri** completo: lo usarás en varios pasos. Guárdalo como variable de entorno:
+
+```powershell
+$env:ECR_REPO_URI="***.dkr.ecr.us-east-2.amazonaws.com/proyecto1-ec2"
+$env:TF_VAR_ecr_repo_url=$env:ECR_REPO_URI
+```
+
+</Callout>
+
+`ECR_REPO_URI` sirve para los comandos de Docker que siguen. `TF_VAR_ecr_repo_url` le pasa el mismo valor a Terraform, que lo usará al crear el servidor.
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Subir nuestra imagen Docker a ECR">
+
+Inicia sesión en el repositorio de ECR:
+
+```powershell
+aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin $env:ECR_REPO_URI
+```
+
+Etiqueta la imagen:
+
+```powershell
+docker tag proyecto1-ec2:latest "$($env:ECR_REPO_URI):latest"
+```
+
+Sube la imagen al repositorio:
+
+```powershell
+docker push "$($env:ECR_REPO_URI):latest"
+```
+
+Puede tomar un par de minutos. Puedes ir por un café o tomar un descanso.
+
+</Content>
+
+<Content title="AWS CLI" subtitle="Verificar en la consola">
+
+Busca la imagen en el repositorio desde la [consola de ECR](https://us-east-2.console.aws.amazon.com/ecr/home?region=us-east-2#):
+
+<Figure src={awsEcr} alt="La imagen proyecto1-ec2 en la consola de ECR" />
+
+</Content>
+
+<Focus>A continuación, configuraremos un servidor en AWS, descargaremos la imagen y verificaremos que el proyecto Django se ejecute al acceder a la dirección IP del servidor… Pero antes…</Focus>
+
+<Section>Herramienta #3: Terraform</Section>
+
+<Content title="Terraform" subtitle="¿Por qué lo vamos a usar?">
+
+Imagina que configuraste tu aplicación Django _manualmente_ en AWS:
+
+- Hiciste clic en 47 botones diferentes en la consola
+- Configuraste redes, subnets, security groups…
+- Todo funcionó perfectamente
+
+Genial, **pero ahora necesitas:**
+
+- Replicarlo en producción (a escala: varias regiones, cuentas e instancias)
+- Que tu compañero de trabajo configure su entorno
+- Documentar qué hiciste exactamente para repetir el proceso
+
+<Callout>
+
+Lo más probable es que hayas olvidado qué hiciste en el paso 23. Tu compañero configurará algo distinto y, sin darse cuenta, generará inconsistencias o errores difíciles de detectar y corregir (deuda técnica).
+
+</Callout>
+
+</Content>
+
+<Content title="Terraform" subtitle="La solución es Infraestructura como Código (IaC)">
+
+Terraform define y gestiona tu infraestructura con archivos **.tf**. Un ejemplo mínimo:
+
+```hcl
+resource "aws_instance" "web" {
+  ami           = "ami-0c101f26f147fa7fd"   // ID de la imagen de Amazon Linux 2023
+  instance_type = "t3.micro"                // 1GB RAM, 2 vCPUs
+}
+```
+
+**Ventajas:**
+
+- El mismo código genera el mismo resultado en AWS, Google Cloud, Azure, etc.
+- Se versiona con Git: ves qué cambió, cuándo y por qué (útil ante bugs o rollbacks)
+- La infraestructura se replica en segundos (no en 435345 clics) con `terraform apply`
+- El código ES la documentación
+
+Descárgalo desde la [guía de instalación de Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli#install-terraform).
+
+</Content>
+
+<Content title="Terraform" subtitle="Tu flujo de trabajo al final del workshop">
+
+<Columns>
+<Col>
+
+<Figure src={flowDiagram} alt="Del código local a Docker, a ECR y a un servidor EC2" />
+
+</Col>
+<Col>
+
+**Nuestro objetivo final es:**
+
+1. Migrar Django de la ejecución local a un contenedor Docker (algunos lo llaman dockerizar)
+2. Crear la imagen Docker y subirla a AWS ECR (Elastic Container Registry)
+3. Usar Terraform para crear un servidor EC2 que descargue y ejecute tu imagen (lo veremos en esta sección)
+4. Abrir tu aplicación desde el navegador en una IP pública
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="Componentes de AWS">
+
+Desplegar significa crear la infraestructura donde vivirá tu aplicación. Piénsalo como construir un edificio: no puedes construir sin terreno, y en AWS pasa lo mismo.
+
+<Columns>
+<Col>
+
+**[1] VPC (Virtual Private Cloud)**: tu terreno delimitado en AWS. Todo vive aquí dentro.
+
+**[2] Subnets**: zonas dentro de la VPC para organizar recursos.
+
+**[3] Internet Gateway**: la puerta que conecta tu edificio con internet.
+
+</Col>
+<Col>
+
+**[4] Route Tables**: definen las rutas del tráfico dentro de la red.
+
+**[5] Security Groups**: guardias que controlan quién entra y por dónde.
+
+**[6] EC2 Instance**: el servidor donde corre tu aplicación; en este caso, Django.
+
+</Col>
+</Columns>
+
+Terraform crea todo esto automáticamente, en el orden correcto.
+
+</Content>
+
+<Focus>Suficiente para empezar a ver código…</Focus>
+
+<Content title="Terraform" subtitle="AWS: VPC [1]">
+
+<Columns>
+<Col>
+
+Primero, indicamos a Terraform que usaremos AWS como proveedor:
+
+```hcl
+provider "aws" {
+  region = "us-east-2"
+}
+
+resource "aws_vpc" "default" {
+  cidr_block = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = { Name = "Django_VPC" }
+}
+```
+
+</Col>
+<Col>
+
+El segundo bloque define nuestra **red privada** (VPC).
+
+`enable_dns_support` activa la resolución de nombres dentro de la VPC.
+
+`enable_dns_hostnames` asigna nombres DNS internos a las instancias, de modo que podamos usar nombres como `db.internal` en lugar de direcciones IP (mucho más fácil de recordar).
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS: Internet Gateway [3]">
+
+<Columns>
+<Col>
+
+El Internet Gateway da a los recursos de la VPC acceso a internet (por ejemplo, para actualizar paquetes o exponer una app web):
+
+```hcl
+resource "aws_internet_gateway" "default" {
+  vpc_id = aws_vpc.default.id
+
+  tags = {
+    Name = "Django_IGW"
+  }
+}
+```
+
+</Col>
+<Col>
+
+Ojito a `aws_vpc.default.id`. Terraform entiende las dependencias: no puedes crear el gateway sin la VPC primero.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS: Subnets [2]">
+
+Creamos dos subnets públicas en zonas de disponibilidad distintas, para alta disponibilidad:
+
+<Columns>
+<Col>
+
+```hcl
+resource "aws_subnet" "public_a" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "${var.aws_region}a"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "Subnet-Public-A"
+  }
+}
+```
+
+</Col>
+<Col>
+
+```hcl
+resource "aws_subnet" "public_b" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.2.0/24"
+  availability_zone       = "${var.aws_region}b"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "Subnet-Public-B"
+  }
+}
+```
+
+</Col>
+</Columns>
+
+<Callout>
+
+RDS requiere al menos dos subnets en zonas de disponibilidad diferentes. `map_public_ip_on_launch = true` asegura que las instancias reciban una IP pública automáticamente.
+
+</Callout>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS: Route Tables [4]">
+
+<Columns>
+<Col>
+
+La tabla de rutas da salida a internet a ambas subnets públicas:
+
+```hcl
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
+  }
+
+  tags = { Name = "RT-Public-Django" }
+}
+```
+
+Traducción: "si el destino NO está dentro de la VPC (10.0.0.0/16), envíalo a internet por el Internet Gateway".
+
+</Col>
+<Col>
+
+```hcl
+# Asociar la subnet A con la tabla de rutas
+resource "aws_route_table_association" "a" {
+  subnet_id      = aws_subnet.public_a.id
+  route_table_id = aws_route_table.public.id
+}
+
+# Asociar la subnet B con la tabla de rutas
+resource "aws_route_table_association" "b" {
+  subnet_id      = aws_subnet.public_b.id
+  route_table_id = aws_route_table.public.id
+}
+```
+
+<Callout>
+
+Ambas subnets deben estar asociadas a la tabla de rutas para tener acceso a internet.
+
+</Callout>
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS: Security Groups [5] (ingress)">
+
+<Columns>
+<Col>
+
+Un grupo de seguridad define qué tráfico entra a nuestras instancias EC2 dentro de la VPC:
+
+```hcl
+resource "aws_security_group" "ec2_sg" {
+  vpc_id = aws_vpc.default.id
+
+  # Permitir tráfico HTTP desde cualquier lugar
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+```
+
+</Col>
+<Col>
+
+También se puede añadir una regla que permita conectarnos a la instancia por SSH desde nuestra IP pública.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS: Security Groups [5] (egress)">
+
+<Columns split="3fr 2fr">
+<Col>
+
+Las reglas de salida (egress) controlan el tráfico desde nuestras instancias hacia otros destinos, como internet:
+
+```hcl
+resource "aws_security_group" "ec2_sg" {
+  vpc_id = aws_vpc.default.id
+
+  egress {
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "-1"              # Todos los protocolos
+    cidr_blocks = ["0.0.0.0/0"]     # Cualquier destino en la red
+  }
+}
+```
+
+</Col>
+<Col>
+
+Aquí `ingress` y `egress` aparecen por separado para mayor claridad. En la práctica, ambas reglas se definen dentro del mismo recurso.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS: EC2 Instance [6] (roles IAM)">
+
+<Columns>
+<Col>
+
+Nuestra instancia EC2 necesita permisos para descargar imágenes Docker desde ECR. Para ello creamos un rol IAM (`aws_iam_role`) que la instancia puede asumir.
+
+El rol otorga credenciales temporales con los permisos necesarios.
+
+</Col>
+<Col>
+
+```hcl
+resource "aws_iam_role" "ec2_ecr" {
+  name = "ec2_ecr_access"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+    }]
+  })
+}
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS: EC2 Instance [6] (políticas y perfil)">
+
+Adjuntamos al rol una política de solo lectura en ECR y creamos el perfil de instancia que EC2 usará al iniciarse:
+
+```hcl
+resource "aws_iam_role_policy_attachment" "ecr_read" {
+  role       = aws_iam_role.ec2_ecr.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "ec2_profile"
+  role = aws_iam_role.ec2_ecr.name
+}
+```
+
+`aws_iam_role_policy_attachment` da permisos de solo lectura a ECR: los mínimos, por seguridad.
+
+`aws_iam_instance_profile` permite que la instancia EC2 use el rol del paso anterior.
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS: EC2 Instance [6] (creación, parte 1)">
+
+<Columns split="2fr 1fr">
+<Col>
+
+Finalmente, creamos la instancia EC2 donde se ejecutará nuestra aplicación Django:
+
+```hcl
+resource "aws_instance" "django_server" {
+  ami                         = "ami-0c101f26f147fa7fd"
+  instance_type               = "t3.micro"
+  subnet_id                   = aws_subnet.public_a.id
+  vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
+  associate_public_ip_address = true
+
+  user_data = <<-EOF
+    # Aquí va el script que se ejecuta al iniciar la instancia
+  EOF
+
+  tags = { Name = "Servidor-Django-Andres" }
+}
+```
+
+</Col>
+<Col>
+
+La instancia usa el rol IAM configurado para obtener acceso de solo lectura a ECR.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS: EC2 Instance [6] (creación, parte 2)">
+
+Este script (`user_data`) se ejecuta UNA VEZ, cuando la instancia inicia. `${var.ecr_repo_url}` es la URL completa del repositorio ECR que guardaste antes.
+
+```bash
+# 1. Instalar Docker
+yum update -y && yum install -y docker && service docker start
+# 2. Login a ECR
+aws ecr get-login-password --region ${var.aws_region} \
+  | docker login --username AWS --password-stdin ${var.ecr_repo_url}
+# 3. Descargar y ejecutar tu imagen Django
+docker run -d -p 80:80 --restart unless-stopped \
+  -e SECRET_KEY='${var.secret_key}' \
+  -e DB_NAME='${aws_db_instance.main.db_name}' \
+  -e DB_USER='${aws_db_instance.main.username}' \
+  -e DB_PASSWORD='${var.db_password}' \
+  -e DB_HOST='${aws_db_instance.main.address}' \
+  -e DB_PORT='${aws_db_instance.main.port}' \
+  ${var.ecr_repo_url}:latest
+```
+
+</Content>
+
+<Focus>_¿Y si no uso Terraform?_ AWS tiene muchos componentes. Con Terraform o desde la consola, debes crear cada uno: red, VPC, gateway, subredes, grupos de seguridad, servidor y roles de IAM. Investiga cada parte para entender su función.</Focus>
+
+<Focus>_Recomendación_: no memorices el proceso. Los archivos .tf estarán en el repositorio 🐧</Focus>
+
+<Content title="Terraform" subtitle="AWS: en resumen…">
+
+Acabas de definir la infraestructura AWS para desplegar tu aplicación Django en un contenedor:
+
+**Redes**: una VPC con DNS interno. Una subred pública en `us-east-2a` que asigna IPs públicas. El Internet Gateway conecta la VPC a internet, y la tabla de rutas envía todo el tráfico no local (`0.0.0.0/0`) al gateway.
+
+**Seguridad**: el security group actúa como firewall: deja entrar HTTP (puerto 80) desde cualquier origen y permite toda la salida. Un rol IAM con la política `AmazonEC2ContainerRegistryReadOnly`, asociado vía instance profile, da acceso a ECR sin credenciales en el código.
+
+**Servidor**: una `t3.micro` con Amazon Linux 2023 (`ami-0c101f26f147fa7fd`). Su `user_data` instala Docker, se autentica en ECR con el rol IAM y levanta el contenedor Django.
+
+</Content>
+
+<Focus>_Tangente_: la seguridad es importante.</Focus>
+
+<Content title="Terraform" subtitle="Variables de entorno y secretos">
+
+<Columns>
+<Col>
+
+Tarde o temprano, Terraform necesita credenciales sensibles (_secrets_): contraseñas de base de datos, tokens de API o claves de acceso a AWS.
+
+Escribirlas directamente en el código es una mala práctica.
+
+**Esto es inseguro**: las credenciales quedan expuestas en el código, en `terraform.tfstate` y quizá en el historial de Git. Aunque el repositorio sea privado, una filtración o un acceso local comprometería toda la infraestructura.
+
+</Col>
+<Col>
+
+```hcl
+resource "aws_db_instance" "mydb" {
+    engine         = "postgres"
+    instance_class = "db.t3.micro"
+
+    # 🚨 atención aquí:
+    username       = "root"
+    password       = "password123"
+}
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="Variables sensibles en Terraform">
+
+<Columns>
+<Col>
+
+Terraform permite marcar variables como **sensitive**, para que sus valores no aparezcan en logs ni en la salida de los comandos.
+
+```hcl
+variable "username" {
+  type        = string
+  sensitive   = true
+}
+
+variable "password" {
+  type        = string
+  sensitive   = true
+}
+```
+
+</Col>
+<Col>
+
+En lugar de valores literales, el recurso usa las referencias `var.username` y `var.password`:
+
+```hcl
+username = var.username
+password = var.password
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="Usando variables de entorno">
+
+<Columns>
+<Col>
+
+Terraform detecta automáticamente las variables de entorno con el prefijo `TF_VAR_`:
+
+```bash
+export TF_VAR_username="admin"
+export TF_VAR_password="password123"
+terraform apply
+```
+
+En Windows (PowerShell):
+
+```powershell
+$env:TF_VAR_username = "admin"
+$env:TF_VAR_password = "password123"
+```
+
+</Col>
+<Col>
+
+Al ejecutar `terraform apply`, Terraform lee `TF_VAR_username` y `TF_VAR_password` y usa sus valores.
+
+Así los valores no están en el código, pero tampoco es del todo seguro: quedan **registrados en el historial** de la terminal y visibles para otros procesos de tu ordenador.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="Usando archivos .tfvars locales">
+
+<Columns>
+<Col>
+
+Otra práctica habitual es un archivo `terraform.tfvars` con las variables reales:
+
+```hcl
+username = "admin"
+password = "password123"
+```
+
+Este archivo no debe subirse al repositorio, así que lo agregamos al `.gitignore`:
+
+```text
+terraform.tfvars
+*.tfstate
+*.tfstate.backup
+```
+
+</Col>
+<Col>
+
+Es simple y práctico para entornos locales o de desarrollo.
+
+Pero en un equipo, cada miembro gestiona su propio archivo y debe mantenerlo fuera del control de versiones. Y **no soluciona** el problema anterior: un proceso malicioso en tu ordenador podría leer tus secretos.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Focus>Todo eso se ve complicado. ¿AWS ofrece alguna forma de gestionar los secretos?</Focus>
+
+<Content title="Terraform" subtitle="AWS KMS (cifrado)">
+
+Para entornos empresariales, se recomienda **AWS Key Management Service (KMS)** para cifrar secretos y datos sensibles. KMS gestiona las claves de cifrado de forma centralizada y segura en AWS. Cuesta alrededor de $1 USD al mes por clave.
+
+Abre la [consola de KMS](https://us-east-2.console.aws.amazon.com/kms/home?region=us-east-2#/kms/home) y sigue estos pasos:
+
+1. Selecciona "Create key"
+2. Elige "Symmetric" como _key type_ y "Encrypt and decrypt" como _key usage_
+3. Haz clic en "Next"
+
+<Figure src={kms1} alt="La configuración de una clave simétrica en KMS" />
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS KMS: nombre y permisos">
+
+<Columns>
+<Col>
+
+Asigna un nombre para identificar tu clave. En este ejemplo, "key-aws".
+
+<Figure src={kms2} alt="El nombre de la clave en KMS" />
+
+</Col>
+<Col>
+
+En los permisos, selecciona el mismo usuario que creamos en la sección de AWS CLI.
+
+<Figure src={kms3} alt="Los administradores de la clave en KMS" />
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS KMS: el ID de la clave">
+
+Guarda el ID de la clave generada por KMS. Lo necesitarás en los siguientes pasos.
+
+<Figure src={kms4} alt="La clave creada en KMS con su ID" />
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS KMS: cifrar las credenciales">
+
+<Columns>
+<Col>
+
+Crea un archivo con las credenciales sensibles, en este caso `db-creds.yml`:
+
+```yaml
+username: root
+password: password123
+```
+
+Cífralo con AWS CLI y la clave KMS:
+
+```bash
+aws kms encrypt \
+      --key-id <KEY_ID> \
+      --region us-east-2 \
+      --plaintext fileb://db-creds.yml \
+      --output text \
+      --query CiphertextBlob > db-creds.yml.enc
+```
+
+</Col>
+<Col>
+
+Reemplaza `<KEY_ID>` con el ID de tu clave. Si tu archivo YAML tiene otro nombre, cámbialo también en el comando.
+
+El comando genera el archivo cifrado `db-creds.yml.enc`. Puedes compartirlo de forma segura e incluso incluirlo en los repositorios internos de tu empresa (¿recuerdas que añadimos archivos al `.gitignore`?).
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS KMS: integración con Terraform">
+
+<Columns>
+<Col>
+
+Terraform descifra las credenciales durante `terraform apply`:
+
+```hcl
+data "aws_kms_secrets" "creds" {
+  secret {
+    name    = "db"
+    payload = file("${path.module}/db-creds.yml.enc")
+  }
+}
+locals {
+  db_creds = jsondecode(
+    data.aws_kms_secrets.creds.secret[0].plaintext
+  )
+}
+```
+
+</Col>
+<Col>
+
+Ahora el recurso de la base de datos usa las credenciales descifradas:
+
+```hcl
+resource "aws_example_instance" "mydb" {
+  engine = "postgres"
+  instance_class = "db.t3.micro"
+  # Credenciales seguras mediante KMS:
+  username = local.db_creds.username
+  password = local.db_creds.password
+}
+```
+
+</Col>
+</Columns>
+
+<Callout>
+
+No podrás editar a mano `db-creds.yml.enc`. Hay herramientas que lo permiten (busca **sops** si te interesa), pero quedan fuera del alcance de este workshop.
+
+</Callout>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS Secrets Manager">
+
+<Columns split="3fr 2fr">
+<Col>
+
+**AWS Secrets Manager** es una alternativa completamente gestionada. Los secretos se guardan cifrados, pueden rotarse automáticamente y Terraform los lee como datos:
+
+```hcl
+data "aws_secretsmanager_secret_version" "creds" {
+  secret_id = "db-creds"
+}
+locals {
+  db_creds = jsondecode(
+    data.aws_secretsmanager_secret_version.creds.secret_string
+  )
+}
+```
+
+</Col>
+<Col>
+
+Crea un secreto nuevo en la consola de AWS, buscando "Secrets Manager", o [desde aquí](https://us-east-2.console.aws.amazon.com/secretsmanager/newsecret?region=us-east-2).
+
+Como tipo de secreto, escoge "Other type of secret" y escribe:
+
+```json
+{
+  "username": "root",
+  "password": "password123"
+}
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="AWS Secrets Manager: crear el secreto">
+
+<Columns>
+<Col>
+
+<Figure src={sm1} alt="El tipo de secreto en Secrets Manager" />
+
+</Col>
+<Col>
+
+<Figure src={sm2} alt="El nombre del secreto en Secrets Manager" />
+
+</Col>
+</Columns>
+
+Asigna un nombre para identificar tu secreto. En este ejemplo, "db-creds".
+
+</Content>
+
+<Content title="Terraform" subtitle="Flujo de trabajo">
+
+Ya sabemos manejar secretos y cómo interactúan AWS y Terraform. Creemos la infraestructura.
+
+<Columns>
+<Col>
+
+Inicializa el directorio y descarga los **providers** de AWS (solo la primera vez):
+
+```bash
+terraform init
+```
+
+Revisa los cambios que se aplicarán, sin ejecutarlos todavía:
+
+```bash
+terraform plan
+```
+
+Aplica los cambios y despliega la infraestructura:
+
+```bash
+terraform apply
+```
+
+</Col>
+<Col>
+
+<Callout>
+
+No hace falta copiar los comandos de las diapositivas anteriores: tendrás un repositorio con el proyecto Django + Terraform ya configurado.
+
+</Callout>
+
+<Callout title="Secreto de estado">
+
+`terraform.tfstate` guarda la relación entre tu código y los recursos reales. **Protégelo y no lo compartas.**
+
+</Callout>
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Terraform" subtitle="Verificar los recursos">
+
+Revisa en la consola de AWS que cada componente se creó correctamente. Algunos lugares para revisar:
+
+- [VPC](https://us-east-2.console.aws.amazon.com/vpcconsole/home?region=us-east-2#vpcs:)
+- [Subnets](https://us-east-2.console.aws.amazon.com/vpcconsole/home?region=us-east-2#subnets:)
+- [Instancias EC2](https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#Instances:instanceState=running)
+
+</Content>
+
+<Content title="Terraform" subtitle="Información útil después del deploy">
+
+<Columns split="4fr 3fr">
+<Col>
+
+Después de `terraform apply`, queremos saber la IP de nuestra app:
+
+```hcl
+output "instance_ip" {
+  description = "IP pública del servidor Django"
+  value       = aws_instance.django.public_ip
+}
+
+output "app_url" {
+  description = "URL de la aplicación"
+  value       = "http://${aws_instance.django.public_ip}"
+}
+```
+
+</Col>
+<Col>
+
+**Resultado en terminal:**
+
+```text
+Outputs:
+
+instance_ip = "99.999.99.999"
+app_url     = "http://99.999.99.999"
+```
+
+Copia la URL y ábrela en tu navegador.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Focus>Listo, ya tenemos acceso al servidor Django desplegado desde AWS 🎉</Focus>
+
+<Focus>Mmmm… veo un error al acceder 🤔</Focus>
+
+<Focus>Demo: ver pantalla</Focus>
+
+<Content title="Django" subtitle="DisallowedHost">
+
+Este error es una medida de seguridad de Django: por defecto, solo acepta peticiones desde localhost. Al acceder desde una IP pública, Django la rechaza.
+
+**La solución** es indicar explícitamente qué dominios o IPs pueden acceder a la aplicación:
+
+1. Abre el archivo `proyecto1/settings.py`.
+2. Busca la línea `ALLOWED_HOSTS`.
+3. Añade la IP pública de tu instancia EC2 entre comillas. Para permitir cualquier host (no recomendado en producción), usa un asterisco.
+
+```python
+ALLOWED_HOSTS = ["XX.XXX.XX.XXX", "*"] # Escribe la IP pública de tu instancia EC2 aquí
+```
+
+<Callout title="Importante">
+
+Después del cambio, reconstruye la imagen de Docker, súbela a ECR y vuelve a ejecutar `terraform apply`, para que el servidor EC2 descargue la nueva versión.
+
+</Callout>
+
+</Content>
+
+<Section>Herramienta #4: AWS RDS</Section>
+
+<Content title="AWS RDS" subtitle="De SQLite a PostgreSQL">
+
+<Columns>
+<Col>
+
+Hasta ahora, Django ha usado SQLite, una base de datos en un solo archivo. Sirve para desarrollo, pero **no para producción**:
+
+- No soporta alta concurrencia (varios usuarios a la vez).
+- El archivo vive dentro del contenedor, así que **se pierde si el contenedor se reinicia o se reemplaza**.
+
+</Col>
+<Col>
+
+**La solución** es un servicio de base de datos gestionado como Amazon RDS:
+
+- Copias de seguridad, parches y escalado sencillo.
+- Funciona de forma independiente del servidor de la aplicación (EC2).
+- Alta disponibilidad y durabilidad de los datos.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="AWS RDS" subtitle="El plan">
+
+1. Crear `database.tf` para definir una instancia PostgreSQL en RDS.
+2. Actualizar `settings.py` para que Django se conecte a RDS.
+3. Pasar las credenciales de la base de datos al contenedor Docker de forma segura.
+
+</Content>
+
+<Content title="AWS RDS" subtitle="Terraform (subnet)">
+
+<Columns>
+<Col>
+
+En `database.tf` definimos primero la red de RDS. RDS necesita un grupo de subnets en al menos dos zonas de disponibilidad (_availability zones_):
+
+```hcl
+resource "aws_db_subnet_group" "default" {
+  name       = "django-db-subnet-group"
+  subnet_ids = [
+    aws_subnet.public.id,       // subnet #1
+    aws_subnet.public_b.id,     // subnet #2
+  ]
+}
+```
+
+</Col>
+<Col>
+
+Cada subnet está en una zona distinta (`a` y `b`). Si una zona falla, RDS puede seguir operando en la otra.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="AWS RDS" subtitle="Terraform (security group)">
+
+<Columns split="3fr 2fr">
+<Col>
+
+```hcl
+resource "aws_security_group" "rds_sg" {
+  name   = "django-rds-sg"
+  vpc_id = aws_vpc.default.id
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] // Desarrollo: cualquier IP
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+```
+
+</Col>
+<Col>
+
+Un grupo de seguridad que solo admite conexiones entrantes en el puerto de PostgreSQL (5432).
+
+<Callout>
+
+En producción, reemplaza `0.0.0.0/0` por la IP del servidor EC2.
+
+</Callout>
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="AWS RDS" subtitle="Terraform (instancia de la base de datos)">
+
+Definimos la instancia de PostgreSQL con `aws_db_instance`:
+
+```hcl
+resource "aws_db_instance" "default" {
+  engine               = "postgres"
+  instance_class       = "db.t3.micro"
+  db_name              = "django_db"
+  username             = "admin"
+  password             = var.db_password
+  publicly_accessible  = true // Solo para migraciones desde local
+}
+```
+
+Algunos detalles que vale la pena mencionar:
+
+- La instancia usa el **subnet group y el security group** que creamos antes.
+- `publicly_accessible = true` permite ejecutar migraciones desde tu ordenador; en producción debe ser `false`.
+- `db_password` debe manejarse como _secret_ (ver la sección de secretos de Terraform).
+
+</Content>
+
+<Content title="AWS RDS" subtitle="Conexión con Django">
+
+<Columns>
+<Col>
+
+Actualizamos `proyecto1/settings.py` para que lea la configuración de la base de datos desde variables de entorno. Así las credenciales no quedan en el código.
+
+Ahora el contenedor Django espera estas 5 variables de entorno para conectarse a la base de datos.
+
+</Col>
+<Col>
+
+```python
+# ... otras configuraciones
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DB_NAME"),
+        "USER": os.environ.get("DB_USER"),
+        "PASSWORD": os.environ.get("DB_PASSWORD"),
+        "HOST": os.environ.get("DB_HOST"),
+        "PORT": os.environ.get("DB_PORT"),
+    }
+}
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="AWS RDS" subtitle="Actualizar el script de inicio de EC2">
+
+Modificamos el `user_data` de `main.tf` (el script de inicio de la instancia EC2) para pasar las variables de entorno al contenedor. Terraform obtiene los valores de la instancia RDS recién creada:
+
+```hcl
+user_data = <<-EOF
+# ... (instalación de Docker y login a ECR) ...
+
+docker run -d -p 80:8080 --restart unless-stopped \
+  -e SECRET_KEY=${var.secret_key} \
+  -e DB_NAME=${aws_db_instance.default.db_name} \
+  -e DB_USER=${aws_db_instance.default.username} \
+  -e DB_PASSWORD=${var.db_password} \
+  -e DB_HOST=${aws_db_instance.default.address} \
+  -e DB_PORT=${aws_db_instance.default.port} \
+  YOUR_ECR_REGISTRY_URL/django-app:latest
+EOF
+```
+
+`aws_db_instance.default.address` es el endpoint de la base de datos; Terraform lo obtiene al crear la instancia.
+
+</Content>
+
+<Content title="AWS RDS" subtitle="Aplicar cambios">
+
+1. **Reconstruye y sube la imagen Docker** con el `settings.py` actualizado:
+
+```bash
+docker build -t proyecto1-ec2 .
+docker tag ...
+docker push ...
+```
+
+2. **Aplica los cambios de Terraform**. Esto crea la instancia RDS y actualiza EC2 para usar la nueva imagen con las variables de entorno correctas:
+
+```bash
+export TF_VAR_db_password="ContraseñaSegura123"
+terraform apply --auto-approve
+```
+
+AWS tarda varios minutos en crear la base de datos. Buen momento para un descanso o un poco de aire fresco.
+
+</Content>
+
+<Content title="AWS RDS" subtitle="Migrar la base de datos">
+
+3. **Ejecuta las migraciones de Django.** La base de datos RDS está vacía; nos conectamos desde nuestra máquina para crear las tablas iniciales.
+
+Añade este output a `database.tf` para ver la dirección de la base de datos tras `terraform apply`:
+
+```hcl
+output "db_endpoint" {
+  description = "Endpoint de la instancia de base de datos RDS"
+  value       = aws_db_instance.default.endpoint
+}
+```
+
+</Content>
+
+<Content title="AWS RDS" subtitle="Migrar desde tu máquina">
+
+Configura tu entorno local con **todas** las credenciales:
+
+```bash
+export DB_HOST="<ENDPOINT_DE_RDS_AQUÍ>"   # La salida de Terraform
+export DB_NAME="django_db"                # El de database.tf
+export DB_USER="admin"                    # El de database.tf
+export DB_PORT="5432"                     # El puerto de PostgreSQL
+export DB_PASSWORD="ContraseñaSegura123"  # La de 'terraform apply'
+```
+
+Y ejecuta los comandos de Django:
+
+```bash
+uv run python manage.py migrate
+uv run python manage.py createsuperuser
+```
+
+En http://XX.XXX.XX.XXX/admin/login/ verás el inicio de sesión de Django. Entra con el usuario y la contraseña que acabas de crear.
+
+</Content>
+
+<Focus>Demo: ver pantalla</Focus>
+
+<Focus>Lo logramos: ya podemos acceder e iniciar sesión en nuestro sitio Django 🎉</Focus>
+
+<Section>Herramienta #5: Amazon Cloudwatch</Section>
+
+<Content title="Cloudwatch" subtitle="¿Por qué centralizar los logs?">
+
+<Columns>
+<Col>
+
+Por defecto, los logs de la aplicación (stdout y stderr) se guardan dentro del contenedor. Esto trae varios problemas:
+
+- Si el contenedor se detiene o se reemplaza, los logs se pierden.
+- Tendrías que conectarte por SSH y ejecutar `docker logs <id>`.
+- Repetirlo en varios servidores es impráctico.
+
+**La solución** es enviar los logs a un servicio centralizado, como **Amazon CloudWatch**.
+
+</Col>
+<Col>
+
+<Figure src={cloudwatchDiagram} alt="Los contenedores envían sus logs a CloudWatch" />
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Cloudwatch" subtitle="1. Configurar Docker">
+
+Docker envía los logs directamente a CloudWatch con el log driver `awslogs`.
+
+Actualiza el `docker run` del script `user_data` en `main.tf`:
+
+```bash
+docker run -d -p 80:8080 --restart unless-stopped \
+  --log-driver=awslogs \
+  --log-opt awslogs-region=us-east-2 \
+  --log-opt awslogs-group="django-app-logs" \
+  --log-opt awslogs-create-group=true \
+  # ... resto de variables -e ...
+```
+
+</Content>
+
+<Content title="Cloudwatch" subtitle="2. Permisos IAM">
+
+<Columns split="3fr 2fr">
+<Col>
+
+```hcl
+resource "aws_iam_policy" "cloudwatch_logs" {
+  name   = "EC2CloudWatchLogsPolicy"
+  policy = jsonencode({
+    Version   = "2012-10-17",
+    Statement = [{
+      Effect   = "Allow",
+      Action   = ["logs:CreateLogStream", "logs:PutLogEvents"],
+      Resource = "arn:aws:logs:*:*:*"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_logs" {
+  role       = aws_iam_role.ec2_ecr.name
+  policy_arn = aws_iam_policy.cloudwatch_logs.arn
+}
+```
+
+</Col>
+<Col>
+
+El servidor necesita permiso para escribir en CloudWatch. Creamos una política IAM y la adjuntamos al rol de la instancia EC2.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="Cloudwatch" subtitle="Visualizar en la consola de AWS">
+
+<Columns>
+<Col>
+
+Tras `terraform apply`, todos los `print()` y errores de Django aparecen en CloudWatch. Para verlos:
+
+1. En la consola de AWS, busca **Cloudwatch**.
+2. En el menú izquierdo, selecciona **Logs > Log groups**.
+3. Abre el grupo de logs `django-app-logs`.
+
+Desde ahí puedes buscar errores, filtrar por fecha y configurar alarmas.
+
+</Col>
+<Col>
+
+<Figure src={cloudwatchLogs} alt="El grupo de logs django-app-logs en CloudWatch" />
+
+</Col>
+</Columns>
+
+</Content>
+
+<Focus>Cloudwatch puede enviar alertas por SMS, email o incluso Slack/WhatsApp (requiere configuración extra) 🏄</Focus>
+
+<Content title="Terraform" subtitle="Destrucción de recursos">
+
+Cuando termines el proyecto, ejecuta:
+
+```bash
+terraform destroy
+```
+
+Terraform elimina los recursos en orden inverso: primero la instancia EC2, luego los Security Groups, las Route Tables, las Subnets, el Internet Gateway y por último la VPC.
+
+**AWS cobra por los recursos activos**, aunque no los uses. Una instancia EC2 cuesta unos $0.01 por hora (cerca de $7 al mes), y una IP elástica reservada sin uso, unos $0.005 por hora. **Destruye siempre lo que no uses.**
+
+<Callout title="Tip">
+
+`terraform plan -destroy` muestra qué se eliminará antes de destruir nada.
+
+</Callout>
+
+</Content>
+
+<Section>Herramienta #6: nginx</Section>
+
+<Content title="nginx" subtitle="Proxy inverso">
+
+No conviene exponer Gunicorn directamente a internet. Gunicorn ejecuta Django, pero no está optimizado para tráfico HTTP, archivos estáticos ni SSL. Para eso usamos un _reverse proxy_ como nginx.
+
+<Figure src={diagram} alt="nginx recibe el tráfico, sirve los estáticos y reenvía el resto a Gunicorn" />
+
+</Content>
+
+<Content title="nginx" subtitle="nginx y Gunicorn">
+
+<Columns>
+<Col>
+
+**nginx** (reverse proxy y archivos estáticos):
+
+- Recibe el tráfico público en el puerto 80 (HTTP).
+- Sirve los archivos estáticos (`/static/`).
+- Reenvía las peticiones dinámicas a Gunicorn (`proxy_pass`).
+
+</Col>
+<Col>
+
+**Gunicorn** (servidor de aplicación WSGI):
+
+- Ejecuta la aplicación Django.
+- Escucha en un puerto local no expuesto (`127.0.0.1:8000`), solo accesible para nginx.
+- Gestiona los procesos _worker_ de Python.
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="nginx" subtitle="1. Configurar STATIC_ROOT en Django">
+
+Para que nginx sirva los archivos estáticos, Django los agrupa en un directorio. En `proyecto1/settings.py`, define dónde `collectstatic` debe reunirlos:
+
+```python
+STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+```
+
+Luego ejecuta:
+
+```bash
+uv run python manage.py collectstatic
+```
+
+Esto genera la carpeta `staticfiles`.
+
+</Content>
+
+<Content title="nginx" subtitle="2. Crear el archivo nginx.conf">
+
+<Columns split="2fr 3fr">
+<Col>
+
+`nginx.conf` configura nginx para servir directamente los **archivos estáticos** de `collectstatic` (cuando el usuario accede a `/static/`) y reenviar el **resto de las solicitudes** a Gunicorn, como las páginas de tu aplicación Django.
+
+</Col>
+<Col>
+
+```nginx
+server {
+    listen 80;
+
+    location /static/ {
+        alias /app/staticfiles/;
+    }
+
+    # Redirigir todas las demás solicitudes a Gunicorn
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+
+        # Enviar encabezados importantes al servidor de aplicación
+        proxy_set_header Host $host;
+    }
+}
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="nginx" subtitle="3. Un entrypoint.sh que inicie ambos servicios">
+
+<Columns split="2fr 3fr">
+<Col>
+
+Docker está pensado para un solo proceso principal por contenedor. En producción se recomienda un contenedor para Gunicorn y otro para nginx. **Como estamos en desarrollo**, usaremos un único contenedor para ambos.
+
+En Linux, da permisos de ejecución al script:
+
+```bash
+chmod +x entrypoint.sh
+```
+
+</Col>
+<Col>
+
+```bash
+#!/bin/bash
+set -e
+
+python manage.py collectstatic --noinput --clear
+
+# Inicia nginx en segundo plano
+nginx -g "daemon off;" &
+
+# Inicia Gunicorn como proceso principal
+exec gunicorn proyecto1.wsgi:application --bind 127.0.0.1:8000
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="nginx" subtitle="4. Actualizar el Dockerfile y 5. los puertos">
+
+<Columns>
+<Col>
+
+4. **Actualiza el `Dockerfile`**: instala nginx y copia los nuevos archivos.
+
+```dockerfile
+RUN apt-get install -y nginx
+
+# copiar los archivos
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY entrypoint.sh /app/entrypoint.sh
+
+# establecer al entrypoint.sh como punto de entrada
+ENTRYPOINT ["/app/entrypoint.sh"]
+```
+
+</Col>
+<Col>
+
+5. **Cambia el mapeo de puertos en Terraform** para exponer solo los puertos públicos (80/443). En el `user_data` de `aws_instance`, el puerto mapeado debe ser `80:80`:
+
+```bash
+# main.tf
+docker run -d -p 80:80 --restart unless-stopped \
+       # ... (variables de entorno)
+```
+
+</Col>
+</Columns>
+
+</Content>
+
+<Content title="nginx" subtitle="Desplegar la nueva versión">
+
+Por último, reconstruye la imagen, súbela a ECR y aplica los cambios con Terraform:
+
+```bash
+# 1. Construye la nueva imagen Docker
+docker build -t proyecto1-ec2 .
+
+# 2. Etiqueta la imagen para tu repositorio ECR
+# (Reemplaza YOUR_ECR_REPO_URL con la URL de tu repo)
+docker tag proyecto1-ec2:latest YOUR_ECR_REPO_URL:latest
+
+# 3. Sube la imagen a ECR
+docker push YOUR_ECR_REPO_URL:latest
+
+# 4. Aplica los cambios de infraestructura (si los hay)
+terraform apply --auto-approve
+```
+
+</Content>
+
+<Section>En conclusión… 😮‍💨</Section>
+
+<Content title="TLDR" subtitle="¿Qué aprendimos en estas dos horas?">
+
+En este workshop desplegaste una aplicación Django en la nube ☁️:
+
+- La aplicación está dockerizada y versionada en ECR
+- Corre en EC2, con la infraestructura como código (Terraform)
+- Está conectada a una base de datos PostgreSQL gestionada (RDS)
+- Envía sus logs a Amazon Cloudwatch para monitoreo
+
+<Callout title="Logro desbloqueado 🏆">
+
+Has desplegado un stack de producción real. Repetible, versionable y sin un solo clic en la consola de AWS.
+
+</Callout>
+
+</Content>
+
+<Picture src={finalArchitecture} alt="La arquitectura final: Docker, ECR, EC2, RDS, CloudWatch y nginx" />
+
+<Content title="Recursos adicionales" subtitle="La mejor forma de aprender es construyendo">
+
+Documentación oficial:
+
+- Django: [docs.djangoproject.com](https://docs.djangoproject.com)
+- Docker: [docs.docker.com](https://docs.docker.com)
+- Terraform: [registry.terraform.io/providers/hashicorp/aws](https://registry.terraform.io/providers/hashicorp/aws)
+- AWS: [docs.aws.amazon.com](https://docs.aws.amazon.com)
+
+</Content>
+
+<Title title="¡Gracias!" subtitle="¿Preguntas? Siéntete libre de preguntar" />
