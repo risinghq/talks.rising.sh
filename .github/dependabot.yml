@@ -41,6 +41,20 @@ updates:
           - minor
           - patch
 
+  - package-ecosystem: terraform
+    directories:
+      - /talks/deploy-django/proyecto1
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      all:
+        update-types:
+          - major
+          - minor
+          - patch
+
   - package-ecosystem: github-actions
     directories:
       - /
