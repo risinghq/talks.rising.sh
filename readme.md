@@ -1,13 +1,13 @@
 # Slides
 
 David's talks, served at
-[slides.empirical.workers.dev](https://slides.empirical.workers.dev). Each talk
+[talks.rising.sh](https://talks.rising.sh). Each talk
 is a web deck in one Next.js site.
 
 | Talk | Source | Watch |
 | --- | --- | --- |
-| Diversidad Vegetal | [`talks/diversidad-vegetal/`](talks/diversidad-vegetal) | [Web](https://slides.empirical.workers.dev/diversidad-vegetal/) |
-| Deploy en la nube: Django on AWS | [`talks/deploy-django/`](talks/deploy-django) | [Web](https://slides.empirical.workers.dev/deploy-django/) |
+| Diversidad Vegetal | [`talks/diversidad-vegetal/`](talks/diversidad-vegetal) | [Web](https://talks.rising.sh/diversidad-vegetal/) |
+| Deploy en la nube: Django on AWS | [`talks/deploy-django/`](talks/deploy-django) | [Web](https://talks.rising.sh/deploy-django/) |
 
 [mise](https://mise.jdx.dev) installs the tools and runs every task:
 
