@@ -1,8 +1,8 @@
-# Slides
+# talks.rising.sh
 
-David's talks, served at
-[talks.rising.sh](https://talks.rising.sh). Each talk
-is a web deck in one Next.js site.
+Talks and workshops as web slide decks, served at
+[talks.rising.sh](https://talks.rising.sh). Each talk is a deck in one Next.js
+site.
 
 | Talk | Source | Watch |
 | --- | --- | --- |
@@ -18,6 +18,12 @@ mise run build    # the static site, into site/out
 mise run deploy   # build, then upload to the Cloudflare Worker
 mise tasks --all  # every task, including each talk's own
 ```
+
+A push to `master` deploys the site through
+[`.github/workflows/deploy.yml`](.github/workflows/deploy.yml), with the repo
+secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. `mise run deploy`
+by hand uses the `cf` profile bound to the checkout
+(`cf auth activate <profile> .`).
 
 In a deck, the arrow keys or a click on either side of the slide move between
 slides. `N` shows the notes, `F` goes full screen, and `#2` in the URL opens the

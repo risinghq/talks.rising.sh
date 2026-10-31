@@ -3,8 +3,8 @@ import "@slides/deck/styles.css";
 import "./index.css";
 
 export const metadata: Metadata = {
-  title: "Slides",
-  description: "Presentaciones de David.",
+  title: "Presentaciones · Rising",
+  description: "Charlas y talleres de Rising, como presentaciones web.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
