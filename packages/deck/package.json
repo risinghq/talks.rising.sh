@@ -9,7 +9,7 @@
     "./styles.css": "./styles.css"
   },
   "dependencies": {
-    "motion": "^14.7.1"
+    "motion": "^14.9.0"
   },
   "peerDependencies": {
     "react": "^19.3.1"
